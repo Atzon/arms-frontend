@@ -4,15 +4,17 @@ import MapGL, {Marker, Popup, NavigationControl, FullscreenControl} from 'react-
 import ControlPanel from './ControlPanel';
 import LocationPin from './LocationPin';
 import LocationInfo from './LocationInfo';
-
+import { Input } from 'antd';
+import 'antd/lib/menu/style/css';
 
 import LOCATIONS from "./LocationsDb.json";
 
 const TOKEN = "pk.eyJ1IjoiYXR6b24iLCJhIjoiY2p1eTZ5amo0MGUwcTRkbnJvNjdqZHRzdCJ9.Yx1QgOpBGpbL6ZlTq_TaOg";
 
+
 const fullscreenControlStyle = {
     position: 'absolute',
-    top: 0,
+    bottom: 50,
     left: 0,
     padding: '10px'
 };
@@ -30,16 +32,17 @@ export default class Main extends Component{
         super(props);
         this.state = {
             viewport: {
-                width: "100wh",
-                height: "100vh",
+                width: '100vw',
+                height: '100vh',
                 latitude: 50.0679198,
                 longitude: 19.9107528,
-                zoom: 15,
-                bearing: 0,
-                pitch: 0
+                zoom: 15
             },
-            popupInfo: null
+            popupInfo: null,
+            panelVisible: false
         };
+        this._updateViewport = this._updateViewport.bind(this);
+        this.onCloseControlPanel = this.onCloseControlPanel.bind(this);
     }
 
 
@@ -53,11 +56,16 @@ export default class Main extends Component{
                 key={`marker-${index}`}
                 longitude={location.longitude}
                 latitude={location.latitude} >
-                <LocationPin size={20} onClick={() => this.setState({popupInfo: location})} />
+                <LocationPin size={20} onClick={() => this.setState({popupInfo: location, panelVisible: true})} />
             </Marker>
         );
     }
 
+    onCloseControlPanel(){
+        this.setState({
+            panelVisible: false
+        })
+    }
     _renderPopup() {
         const {popupInfo} = this.state;
 
@@ -67,39 +75,46 @@ export default class Main extends Component{
                    longitude={popupInfo.longitude}
                    latitude={popupInfo.latitude}
                    closeOnClick={false}
-                   onClose={() => this.setState({popupInfo: null})} >
+                   onClose={() => this.setState({popupInfo: null, panelVisible: false})} >
                 <LocationInfo info={popupInfo} />
             </Popup>
         );
     }
 
-
-
     render(){
         const {viewport} = this.state;
 
         return(
-            <div>
-                <MapGL
-                    {...viewport}
-                    // mapStyle="mapbox://styles/mapbox/dark-v9"
-                    onViewportChange={this._updateViewport}
-                    mapboxApiAccessToken={TOKEN} >
+            <MapGL
+                {...viewport}
+                // mapStyle="mapbox://styles/mapbox/dark-v9"
+                onViewportChange={this._updateViewport}
+                mapboxApiAccessToken={TOKEN} >
 
-                    { LOCATIONS.map(this._renderLocationMarker) }
+                { LOCATIONS.map(this._renderLocationMarker) }
 
-                    {this._renderPopup()}
+                {this._renderPopup()}
 
-                    <div className="fullscreen" style={fullscreenControlStyle}>
-                        <FullscreenControl />
-                    </div>
-                    <div className="nav" style={navStyle}>
-                        <NavigationControl onViewportChange={this._updateViewport} />
-                    </div>
+                <Input.Search
+                    style={{padding: "10px 50px 0 50px", width: "100vw"}}
+                    placeholder="Location..."
+                    onSearch={value => console.log(value)}
+                    enterButton
+                />
 
-                    {/*<ControlPanel containerComponent={this.props.containerComponent} />*/}
-                </MapGL>
-            </div>
+                <div className="fullscreen" style={fullscreenControlStyle}>
+                    <FullscreenControl />
+                </div>
+                <div className="nav" style={navStyle}>
+                    <NavigationControl onViewportChange={this._updateViewport} />
+                </div>
+                {this.state.panelVisible ?
+                    <ControlPanel popupInfo={this.state.popupInfo} onClose={this.onCloseControlPanel} />
+                    :
+                    <div></div>
+                }
+            </MapGL>
+
         );
     }
 }

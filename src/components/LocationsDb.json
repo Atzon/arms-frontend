@@ -1,8 +1,8 @@
 [
     {"name":"Punkt1","latitude":50.0679198,"longitude":19.9107528, "value":  100},
-    {"name":"Punkt2","latitude":50.0675198,"longitude":19.9157528, "value":  100},
-    {"name":"Punkt3","latitude":50.0671198,"longitude":19.9117528, "value":  100},
-    {"name":"Punkt4","latitude":50.0674198,"longitude":19.9137528, "value":  100}
+    {"name":"Punkt2","latitude":50.0675198,"longitude":19.9157528, "value":  50},
+    {"name":"Punkt3","latitude":50.0671198,"longitude":19.9117528, "value":  30},
+    {"name":"Punkt4","latitude":50.0674198,"longitude":19.9137528, "value":  300}
 ]
 
 

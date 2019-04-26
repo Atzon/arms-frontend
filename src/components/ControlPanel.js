@@ -1,20 +1,17 @@
 import React, {PureComponent} from 'react';
-
-const defaultContainer = ({children}) => <div className="control-panel">{children}</div>;
+import { Card, Button } from 'antd';
+import 'antd/lib/menu/style/css';
+import 'antd/dist/antd.css';
 
 export default class ControlPanel extends PureComponent {
     render() {
-        const Container = this.props.containerComponent || defaultContainer;
-
         return (
-            <Container>
-                <h3>Marker, Popup, NavigationControl and FullscreenControl </h3>
-                <p>Map showing top 20 most populated cities of the United States. Click on a marker to learn more.</p>
-                <p>Data source: <a href="https://en.wikipedia.org/wiki/List_of_United_States_cities_by_population">Wikipedia</a></p>
-                <div className="source-link">
-                    <a href="https://github.com/uber/react-map-gl/tree/4.1-release/examples/controls" target="_new">View Code ↗</a>
-                </div>
-            </Container>
+            <div style={{ background: '#ECECEC', padding: '10px', float: "right", width: "25vw", height: "100%"}}>
+                <Card title={this.props.popupInfo.name} bordered={false} style={{height: "100%"}}>
+                    <p>PM10 = {this.props.popupInfo.value}</p>
+                    <Button type="primary" onClick={this.props.onClose}>Hide</Button>
+                </Card>
+            </div>
         );
     }
 }
