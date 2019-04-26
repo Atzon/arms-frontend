@@ -13,4 +13,4 @@ Running
 
 ## Endpoints
 
-### `localhost:3000/map`
+### `localhost:3000/`
