@@ -4,8 +4,10 @@ import MapGL, {Marker, Popup, NavigationControl, FullscreenControl} from 'react-
 import ControlPanel from './ControlPanel';
 import LocationPin from './LocationPin';
 import LocationInfo from './LocationInfo';
-import { Input } from 'antd';
+import DeckGL, { GeoJsonLayer } from "deck.gl";
+import Geocoder from 'react-map-gl-geocoder'
 import 'antd/lib/menu/style/css';
+import '../Geocoder.css';
 
 import LOCATIONS from "./LocationsDb.json";
 
@@ -39,16 +41,38 @@ export default class Main extends Component{
                 zoom: 15
             },
             popupInfo: null,
-            panelVisible: false
+            panelVisible: false,
+            searchResultLayer: null
         };
-        this._updateViewport = this._updateViewport.bind(this);
+        this.handleViewportChange = this.handleViewportChange.bind(this);
         this.onCloseControlPanel = this.onCloseControlPanel.bind(this);
     }
 
 
-    _updateViewport = (viewport) => {
-        this.setState({viewport});
+    mapRef = React.createRef();
+
+    componentDidMount() {
+        window.addEventListener("resize", this.resize);
+        this.resize();
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("resize", this.resize);
+    }
+
+    resize = () => {
+        this.handleViewportChange({
+            width: window.innerWidth,
+            height: window.innerHeight
+        });
     };
+
+    handleViewportChange = viewport => {
+        this.setState({
+            viewport: { ...this.state.viewport, ...viewport }
+        });
+    };
+
 
     _renderLocationMarker = (location, index) => {
         return (
@@ -81,32 +105,58 @@ export default class Main extends Component{
         );
     }
 
+    handleGeocoderViewportChange = viewport => {
+        const geocoderDefaultOverrides = { transitionDuration: 1000 };
+
+        return this.handleViewportChange({
+            ...viewport,
+            ...geocoderDefaultOverrides
+        });
+    };
+
+    handleOnResult = event => {
+        console.log(event.result);
+        this.setState({
+            searchResultLayer: new GeoJsonLayer({
+                id: "search-result",
+                data: event.result.geometry,
+                getFillColor: [255, 0, 0, 128],
+                getRadius: 1000,
+                pointRadiusMinPixels: 10,
+                pointRadiusMaxPixels: 10
+            })
+        });
+    };
+
     render(){
-        const {viewport} = this.state;
+        const { viewport, searchResultLayer } = this.state;
 
         return(
             <MapGL
+                ref={this.mapRef}
                 {...viewport}
                 // mapStyle="mapbox://styles/mapbox/dark-v9"
-                onViewportChange={this._updateViewport}
+                onViewportChange={this.handleViewportChange}
                 mapboxApiAccessToken={TOKEN} >
 
                 { LOCATIONS.map(this._renderLocationMarker) }
 
                 {this._renderPopup()}
 
-                <Input.Search
-                    style={{padding: "10px 50px 0 50px", width: "100vw"}}
-                    placeholder="Location..."
-                    onSearch={value => console.log(value)}
-                    enterButton
+                <Geocoder
+                    mapRef={this.mapRef}
+                    onResult={this.handleOnResult}
+                    onViewportChange={this.handleGeocoderViewportChange}
+                    mapboxApiAccessToken={TOKEN}
+                    position="top-left"
                 />
+                {/*<DeckGL {...viewport} layers={[searchResultLayer]} />*/}
 
                 <div className="fullscreen" style={fullscreenControlStyle}>
                     <FullscreenControl />
                 </div>
                 <div className="nav" style={navStyle}>
-                    <NavigationControl onViewportChange={this._updateViewport} />
+                    <NavigationControl onViewportChange={this.handleViewportChange} />
                 </div>
                 {this.state.panelVisible ?
                     <ControlPanel popupInfo={this.state.popupInfo} onClose={this.onCloseControlPanel} />
