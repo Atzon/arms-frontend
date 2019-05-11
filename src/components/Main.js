@@ -10,10 +10,11 @@ import 'antd/lib/menu/style/css';
 import '../Geocoder.css';
 
 import LOCATIONS from "./LocationsDb.json";
-import CONTENT from "./content.json";
+
+import pointGenerator from "../utils/pointGenerator";
 
 const TOKEN = "pk.eyJ1IjoiYXR6b24iLCJhIjoiY2p1eTZ5amo0MGUwcTRkbnJvNjdqZHRzdCJ9.Yx1QgOpBGpbL6ZlTq_TaOg";
-const HEATMAP_SOURCE_ID = "earthquakes-source";
+const HEATMAP_SOURCE_ID = "points-source";
 
 const fullscreenControlStyle = {
     position: 'absolute',
@@ -53,7 +54,7 @@ export default class Main extends Component{
             popupInfo: null,
             panelVisible: false,
             searchResultLayer: null,
-            earthquakes: null
+            points: null
         };
         this.handleViewportChange = this.handleViewportChange.bind(this);
         this.onCloseControlPanel = this.onCloseControlPanel.bind(this);
@@ -158,7 +159,7 @@ export default class Main extends Component{
                 "circle-color": [
                     "interpolate",
                     ["linear"],
-                    ["get", "mag"],
+                    ["get", "pm10"],
                     1, "rgba(33,102,172, 0)",
                     20, "rgb(0,255,0)",
                     50, "rgb(127,255,0)",
@@ -186,12 +187,12 @@ export default class Main extends Component{
     _handleMapLoaded = event => {
         const map = this._getMap();
 
-
+        const CONTENT = pointGenerator(LOCATIONS);
         const features = CONTENT.features;
-        const endTime = features[0].properties.time;
-        const startTime = features[features.length - 1].properties.time;
+        // const endTime = features[0].properties.time;
+        // const startTime = features[features.length - 1].properties.time;
 
-        this.setState({ earthquakes: CONTENT, endTime, startTime, selectedTime: endTime });
+        this.setState({ points: CONTENT /*,endTime, startTime, selectedTime: endTime */});
         map.addSource(HEATMAP_SOURCE_ID, { type: "geojson", data: CONTENT});
         map.addLayer(this._mkCirclemapLayer("heatmap-layer", HEATMAP_SOURCE_ID));
     };
