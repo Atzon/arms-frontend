@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import MapGL, {Marker, Popup, NavigationControl, FullscreenControl} from 'react-map-gl';
+import MapGL, {Marker, Popup, NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
 
 import ControlPanel from './ControlPanel';
 import LocationPin from './LocationPin';
@@ -27,6 +27,13 @@ const navStyle = {
     top: 36,
     left: 0,
     padding: '10px'
+};
+
+const geolocateStyle = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    margin: 10,
 };
 
 const content =[];
@@ -130,44 +137,35 @@ export default class Main extends Component{
         });
     };
 
-    _mkHeatmapLayer = (id, source) => {
-        const MAX_ZOOM_LEVEL = 20;
-        return {
-            id,
-            source,
-            maxzoom: 20,
-            type: 'heatmap',
-            paint: {
-                // Increase the heatmap weight based on frequency and property magnitude
-                "heatmap-weight": [
+    _mkCirclemapLayer = (id, source) => {
+        return{
+            "id": id,
+            "source": source,
+            "type": "circle",
+            // "minzoom": 7,
+            "paint": {
+                "circle-radius":
+                    [
+                        "interpolate",
+                        ["linear"],
+                        ["zoom"],
+                        7, 90,
+                        16, 190,
+                    ],
+
+                "circle-blur": 1,
+                "circle-color": [
                     "interpolate",
                     ["linear"],
                     ["get", "mag"],
-                    0, 0,
-                    10, 5
+                    1, "rgba(33,102,172, 0)",
+                    20, "rgb(0,255,0)",
+                    50, "rgb(127,255,0)",
+                    100, "rgb(255,255,0)",
+                    200, "rgb(255,127,0)",
+                    300, "rgb(255,0,0)"
                 ],
-                // Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
-                // Begin color ramp at 0-stop with a 0-transparancy color
-                // to create a blur-like effect.
-                "heatmap-color": [
-                    "interpolate",
-                    ["linear"],
-                    ["heatmap-density"],
-                    0, "rgba(0,128,0,0)",
-                    0.2, "rgb(68,171,0)",
-                    0.4, "rgb(190,223,0)",
-                    0.6, "rgb(221,193,0)",
-                    0.8, "rgb(240,101,0)",
-                    0.9, "rgb(255,0,0)"
-                ],
-                // Adjust the heatmap radius by zoom level
-                "heatmap-radius": [
-                    "interpolate",
-                    ["linear"],
-                    ["zoom"],
-                    0, 2,
-                    MAX_ZOOM_LEVEL, 20
-                ],
+                "circle-opacity": 0.4
             }
         }
     };
@@ -186,7 +184,7 @@ export default class Main extends Component{
 
         this.setState({ earthquakes: CONTENT, endTime, startTime, selectedTime: endTime });
         map.addSource(HEATMAP_SOURCE_ID, { type: "geojson", data: CONTENT});
-        map.addLayer(this._mkHeatmapLayer("heatmap-layer", HEATMAP_SOURCE_ID));
+        map.addLayer(this._mkCirclemapLayer("heatmap-layer", HEATMAP_SOURCE_ID));
     };
 
     _setMapData = features => {
@@ -217,6 +215,14 @@ export default class Main extends Component{
                     mapboxApiAccessToken={TOKEN}
                     position="top-left"
                 />
+
+                <GeolocateControl
+                    style={geolocateStyle}
+                    onViewportChange={this.handleViewportChange}
+                    positionOptions={{enableHighAccuracy: true}}
+                    trackUserLocation={true}
+                />
+
                 {/*<DeckGL {...viewport} layers={[searchResultLayer]} />*/}
 
                 <div className="fullscreen" style={fullscreenControlStyle}>

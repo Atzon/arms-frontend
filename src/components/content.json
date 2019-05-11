@@ -11,7 +11,7 @@
       "type":"Feature",
       "properties":{
         "id":"ak16994522",
-        "mag":15,
+        "mag":300,
         "time":1507425650893,
         "felt":null,
         "tsunami":0
@@ -29,7 +29,7 @@
       "type":"Feature",
       "properties":{
         "id":"ak16994521",
-        "mag":5,
+        "mag":200,
         "time":1507425650893,
         "felt":null,
         "tsunami":0
@@ -47,7 +47,7 @@
       "type":"Feature",
       "properties":{
         "id":"ak16994521",
-        "mag":3,
+        "mag":100,
         "time":1507425650893,
         "felt":null,
         "tsunami":0
@@ -65,7 +65,7 @@
       "type":"Feature",
       "properties":{
         "id":"ak16994521",
-        "mag":40,
+        "mag":50,
         "time":1507425650893,
         "felt":null,
         "tsunami":0
