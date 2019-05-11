@@ -47,7 +47,8 @@ export default class Main extends Component{
                 height: '100vh',
                 latitude: 50.0679198,
                 longitude: 19.9107528,
-                zoom: 15
+                zoom: 15,
+                minZoom: 10
             },
             popupInfo: null,
             panelVisible: false,
@@ -174,6 +175,14 @@ export default class Main extends Component{
         return this._mapRef.current ? this._mapRef.current.getMap() : null;
     };
 
+    filterByCracow = (item) =>{
+        return item.context.map(function (i) {
+            return (i.id.split('.').shift() === 'place' && i.text === 'Kraków');
+        }).reduce(function (acc, cur) {
+                return acc || cur;
+            });
+    };
+
     _handleMapLoaded = event => {
         const map = this._getMap();
 
@@ -210,10 +219,12 @@ export default class Main extends Component{
 
                 <Geocoder
                     mapRef={this._mapRef}
+                    countries='pl'
                     onResult={this.handleOnResult}
                     onViewportChange={this.handleGeocoderViewportChange}
                     mapboxApiAccessToken={TOKEN}
                     position="top-left"
+                    filter={this.filterByCracow}
                 />
 
                 <GeolocateControl
