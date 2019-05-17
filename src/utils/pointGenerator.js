@@ -9,15 +9,15 @@ export default function generatePoints(data){
         let point = {
             type: "Feature",
             properties: {
-                id: element.id,
-                pm10: element.pm10,
-                pm2_5: element.pm2_5,
+                id: element._id,
+                pm10: element.PM10,
+                pm2_5: element.PM2_5,
             },
             geometry: {
                 type: "Point",
                 coordinates: [
-                    element.longitude,
-                    element.latitude,
+                    element.location.longitude,
+                    element.location.latitude,
                 ]
             }
         };

@@ -5,10 +5,11 @@ import {Provider} from 'react-redux';
 import {applyMiddleware, createStore} from 'redux';
 import reducers from './reducers';
 import Routes from "./routes";
+import thunk from 'redux-thunk';
 //import * as serviceWorker from './serviceWorker';
 
 
-const createStoreWithMiddleware = applyMiddleware()(createStore);
+const createStoreWithMiddleware = applyMiddleware(thunk)(createStore);
 
 
 ReactDOM.render(

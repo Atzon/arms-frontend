@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import MapGL, {Marker, Popup, NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
-
+import {connect} from "react-redux";
 import ControlPanel from './ControlPanel';
 import LocationPin from './LocationPin';
 import LocationInfo from './LocationInfo';
@@ -9,12 +9,15 @@ import Geocoder from 'react-map-gl-geocoder'
 import 'antd/lib/menu/style/css';
 import '../Geocoder.css';
 
-import LOCATIONS from "./LocationsDb.json";
+import {fetchPoints} from "../actions";
 
 import pointGenerator from "../utils/pointGenerator";
 
+
+
 const TOKEN = "pk.eyJ1IjoiYXR6b24iLCJhIjoiY2p1eTZ5amo0MGUwcTRkbnJvNjdqZHRzdCJ9.Yx1QgOpBGpbL6ZlTq_TaOg";
 const HEATMAP_SOURCE_ID = "points-source";
+
 
 const fullscreenControlStyle = {
     position: 'absolute',
@@ -37,8 +40,12 @@ const geolocateStyle = {
     margin: 10,
 };
 
-const content =[];
-export default class Main extends Component{
+
+class Main extends Component{
+
+    componentWillMount() {
+        this.props.fetchPoints();
+    }
 
     constructor(props) {
         super(props);
@@ -89,8 +96,8 @@ export default class Main extends Component{
         return (
             <Marker
                 key={`marker-${index}`}
-                longitude={location.longitude}
-                latitude={location.latitude} >
+                longitude={location.location.longitude}
+                latitude={location.location.latitude} >
                 <LocationPin size={20} onClick={() => this.setState({popupInfo: location, panelVisible: true})} />
             </Marker>
         );
@@ -107,8 +114,8 @@ export default class Main extends Component{
         return popupInfo && (
             <Popup tipSize={5}
                    anchor="top"
-                   longitude={popupInfo.longitude}
-                   latitude={popupInfo.latitude}
+                   longitude={popupInfo.location.longitude}
+                   latitude={popupInfo.location.latitude}
                    closeOnClick={false}
                    onClose={() => this.setState({popupInfo: null, panelVisible: false})} >
                 <LocationInfo info={popupInfo} />
@@ -126,7 +133,7 @@ export default class Main extends Component{
     };
 
     handleOnResult = event => {
-        console.log(event.result);
+        // console.log(event.result);
         this.setState({
             searchResultLayer: new GeoJsonLayer({
                 id: "search-result",
@@ -187,7 +194,7 @@ export default class Main extends Component{
     _handleMapLoaded = event => {
         const map = this._getMap();
 
-        const CONTENT = pointGenerator(LOCATIONS);
+        const CONTENT = pointGenerator(this.props.points);
         const features = CONTENT.features;
         // const endTime = features[0].properties.time;
         // const startTime = features[features.length - 1].properties.time;
@@ -200,10 +207,17 @@ export default class Main extends Component{
     _setMapData = features => {
         const map = this._getMap();
         map && map.getSource(HEATMAP_SOURCE_ID).setData(this._mkFeatureCollection(features));
-    }
+    };
 
     render(){
         const { viewport, searchResultLayer } = this.state;
+
+        if(!this.props.points){
+            return(
+                <div>Loading...</div>
+            );
+        }
+
 
         return(
             <MapGL
@@ -214,7 +228,7 @@ export default class Main extends Component{
                 onLoad={this._handleMapLoaded}
                 mapboxApiAccessToken={TOKEN} >
 
-                { LOCATIONS.map(this._renderLocationMarker) }
+                { this.props.points.map(this._renderLocationMarker) }
 
                 {this._renderPopup()}
 
@@ -253,3 +267,12 @@ export default class Main extends Component{
         );
     }
 }
+
+function mapStateToProps(state){
+    return{
+        points: state.points
+    };
+}
+
+export default connect(mapStateToProps, {fetchPoints})(Main);
+
