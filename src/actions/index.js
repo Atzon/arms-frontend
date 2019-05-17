@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const ROOT_URL = 'http://arms-backend-server.herokuapp.com/api';
+const ROOT_URL = 'https://arms-backend-server.herokuapp.com/api';
 
 
 export const FETCH_POINTS = 'FETCH_LESSONS';
