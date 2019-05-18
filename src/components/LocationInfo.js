@@ -5,7 +5,7 @@ export default class LocationInfo extends PureComponent {
 
     render() {
         const {info} = this.props;
-        const displayName = `${info._id}, ${info.PM10}`;
+        const displayName = `${info.properties.id}, ${info.properties.pm10}`;
 
         return (
             <div>

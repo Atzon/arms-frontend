@@ -60,11 +60,12 @@ export default class ControlPanel extends PureComponent {
     }
 
     render() {
+        console.log(this.props.popupInfo);
         return (
             <div style={{ marginTop: "10vh", float: "right", width: "25vw", height: "100%"}}>
-                <Card title={this.props.popupInfo._id} bordered={false} style={{height: "100%"}}>
-                    {this.renderPMBar("PM10", this.props.popupInfo.PM10, PM10_MAX)}
-                    {this.renderPMBar("PM2.5", this.props.popupInfo.PM2_5, PM2_5_MAX)}
+                <Card title={this.props.popupInfo.properties.id} bordered={false} style={{height: "100%"}}>
+                    {this.renderPMBar("PM10", this.props.popupInfo.properties.pm10, PM10_MAX)}
+                    {this.renderPMBar("PM2.5", this.props.popupInfo.properties.pm2_5, PM2_5_MAX)}
                     <Button type="primary" onClick={this.props.onClose}>Hide</Button>
                 </Card>
             </div>

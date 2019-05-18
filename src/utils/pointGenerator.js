@@ -12,6 +12,7 @@ export default function generatePoints(data){
                 id: element._id,
                 pm10: element.PM10,
                 pm2_5: element.PM2_5,
+                time: new Date(element.datetime).getHours()
             },
             geometry: {
                 type: "Point",

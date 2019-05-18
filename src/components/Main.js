@@ -5,6 +5,7 @@ import ControlPanel from './ControlPanel';
 import LocationPin from './LocationPin';
 import LocationInfo from './LocationInfo';
 import DeckGL, { GeoJsonLayer } from "deck.gl";
+import {Slider} from "antd";
 import Geocoder from 'react-map-gl-geocoder'
 import 'antd/lib/menu/style/css';
 import '../Geocoder.css';
@@ -40,6 +41,26 @@ const geolocateStyle = {
     margin: 10,
 };
 
+const sliderStyle = {
+    position: "absolute",
+    width: "25%",
+    top: "85%",
+    left: "35%",
+    padding: "10px"
+};
+
+function mapToHour(value){
+    let hour = new Date().getHours() - (23-value);
+
+    if(hour>23){
+        hour = hour-24;
+    }
+    if(hour<0){
+        hour = 24 + hour;
+    }
+    return hour;
+}
+
 
 class Main extends Component{
 
@@ -61,12 +82,14 @@ class Main extends Component{
             popupInfo: null,
             panelVisible: false,
             searchResultLayer: null,
-            points: null
+            points: null,
+            visiblePoints: []
         };
         this.handleViewportChange = this.handleViewportChange.bind(this);
         this.onCloseControlPanel = this.onCloseControlPanel.bind(this);
         this._mapRef = React.createRef();
         this._handleMapLoaded = this._handleMapLoaded.bind(this);
+        this.filterByDate = this.filterByDate.bind(this);
     }
 
     componentDidMount() {
@@ -96,12 +119,14 @@ class Main extends Component{
         return (
             <Marker
                 key={`marker-${index}`}
-                longitude={location.location.longitude}
-                latitude={location.location.latitude} >
+                longitude={location.geometry.coordinates[0]}
+                latitude={location.geometry.coordinates[1]} >
                 <LocationPin size={20} onClick={() => this.setState({popupInfo: location, panelVisible: true})} />
             </Marker>
         );
-    }
+    };
+
+
 
     onCloseControlPanel(){
         this.setState({
@@ -114,8 +139,8 @@ class Main extends Component{
         return popupInfo && (
             <Popup tipSize={5}
                    anchor="top"
-                   longitude={popupInfo.location.longitude}
-                   latitude={popupInfo.location.latitude}
+                   longitude={popupInfo.geometry.coordinates[0]}
+                   latitude={popupInfo.geometry.coordinates[1]}
                    closeOnClick={false}
                    onClose={() => this.setState({popupInfo: null, panelVisible: false})} >
                 <LocationInfo info={popupInfo} />
@@ -191,10 +216,34 @@ class Main extends Component{
             });
     };
 
+    filterByDate(hour){
+        const map = this._getMap();
+
+
+        const filter =
+            [  "all",
+                [">", "time", hour-2],
+                ["<", "time", hour+2]
+            ];
+
+        map.setFilter('heatmap-layer', filter);
+
+        const features = map.querySourceFeatures(HEATMAP_SOURCE_ID, {
+            sourceLayer: "heatmap-layer",
+            filter: filter
+        });
+
+        this.setState({
+            visiblePoints: features
+        });
+
+    }
+
     _handleMapLoaded = event => {
         const map = this._getMap();
 
         const CONTENT = pointGenerator(this.props.points);
+        console.log(CONTENT);
         const features = CONTENT.features;
         // const endTime = features[0].properties.time;
         // const startTime = features[features.length - 1].properties.time;
@@ -202,12 +251,19 @@ class Main extends Component{
         this.setState({ points: CONTENT /*,endTime, startTime, selectedTime: endTime */});
         map.addSource(HEATMAP_SOURCE_ID, { type: "geojson", data: CONTENT});
         map.addLayer(this._mkCirclemapLayer("heatmap-layer", HEATMAP_SOURCE_ID));
+        this.filterByDate(new Date().getHours());
     };
 
     _setMapData = features => {
         const map = this._getMap();
         map && map.getSource(HEATMAP_SOURCE_ID).setData(this._mkFeatureCollection(features));
     };
+
+
+
+    formatter(value){
+        return mapToHour(value).toString();
+    }
 
     render(){
         const { viewport, searchResultLayer } = this.state;
@@ -218,51 +274,57 @@ class Main extends Component{
             );
         }
 
-
         return(
-            <MapGL
-                ref={this._mapRef}
-                {...viewport}
-                // mapStyle="mapbox://styles/mapbox/dark-v9"
-                onViewportChange={this.handleViewportChange}
-                onLoad={this._handleMapLoaded}
-                mapboxApiAccessToken={TOKEN} >
-
-                { this.props.points.map(this._renderLocationMarker) }
-
-                {this._renderPopup()}
-
-                <Geocoder
-                    mapRef={this._mapRef}
-                    countries='pl'
-                    onResult={this.handleOnResult}
-                    onViewportChange={this.handleGeocoderViewportChange}
-                    mapboxApiAccessToken={TOKEN}
-                    position="top-left"
-                    filter={this.filterByCracow}
-                />
-
-                <GeolocateControl
-                    style={geolocateStyle}
+            <div>
+                <MapGL
+                    ref={this._mapRef}
+                    {...viewport}
+                    // mapStyle="mapbox://styles/mapbox/dark-v9"
                     onViewportChange={this.handleViewportChange}
-                    positionOptions={{enableHighAccuracy: true}}
-                    trackUserLocation={true}
-                />
+                    onLoad={this._handleMapLoaded}
+                    mapboxApiAccessToken={TOKEN} >
 
-                {/*<DeckGL {...viewport} layers={[searchResultLayer]} />*/}
+                    { this.state.visiblePoints.map(this._renderLocationMarker) }
 
-                <div className="fullscreen" style={fullscreenControlStyle}>
-                    <FullscreenControl />
+                    {this._renderPopup()}
+
+                    <Geocoder
+                        mapRef={this._mapRef}
+                        countries='pl'
+                        onResult={this.handleOnResult}
+                        onViewportChange={this.handleGeocoderViewportChange}
+                        mapboxApiAccessToken={TOKEN}
+                        position="top-left"
+                        filter={this.filterByCracow}
+                    />
+
+                    <GeolocateControl
+                        style={geolocateStyle}
+                        onViewportChange={this.handleViewportChange}
+                        positionOptions={{enableHighAccuracy: true}}
+                        trackUserLocation={true}
+                    />
+
+                    {/*<DeckGL {...viewport} layers={[searchResultLayer]} />*/}
+
+
+
+                    <div className="fullscreen" style={fullscreenControlStyle}>
+                        <FullscreenControl />
+                    </div>
+                    <div className="nav" style={navStyle}>
+                        <NavigationControl onViewportChange={this.handleViewportChange} />
+                    </div>
+                    {this.state.panelVisible ?
+                        <ControlPanel popupInfo={this.state.popupInfo} onClose={this.onCloseControlPanel} />
+                        :
+                        <div></div>
+                    }
+                </MapGL>
+                <div style={sliderStyle}>
+                    <Slider min={0} max={23} defaultValue={23} tipFormatter={this.formatter} onChange={this.filterByDate}/>
                 </div>
-                <div className="nav" style={navStyle}>
-                    <NavigationControl onViewportChange={this.handleViewportChange} />
-                </div>
-                {this.state.panelVisible ?
-                    <ControlPanel popupInfo={this.state.popupInfo} onClose={this.onCloseControlPanel} />
-                    :
-                    <div></div>
-                }
-            </MapGL>
+            </div>
 
         );
     }
