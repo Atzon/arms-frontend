@@ -1,0 +1,107 @@
+.map-legend{
+    position:absolute;
+    bottom:15px;
+    left:50%;
+    z-index:500;
+    -webkit-transform:translateX(-50%);
+    transform:translateX(-50%);
+    -webkit-transition:opacity .5s,margin-left .4s ease-in-out;
+    transition:opacity .5s,margin-left .4s ease-in-out;
+    padding-right:30px;
+    padding-left:30px
+}
+.map-legend__title{
+    white-space:nowrap;
+    font-size:10px;
+    line-height:18px;
+    padding:0 10px;
+    background-color:#f0f0f0;
+    border-radius:5px;
+    margin-left:15px;
+    width:auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:absolute;
+    left:0;
+    top:0;
+    -webkit-transform:translateY(-50%);
+    transform:translateY(-50%)
+}
+.map-legend__legend{
+    font-size:12px;
+    margin-bottom:5px;
+    display:none
+}
+.map-legend__list,.map-legend__sensor{
+    display:flex;
+    align-items:center
+}
+.map-legend__sensor:before{
+    content:"";
+    display:inline-block;
+    width:10px;
+    height:10px;
+    background:#f0f0f0
+}
+.map-legend__sensor--type-airly:before{
+    border-radius:50%
+}
+.map-legend__colors{
+    margin-left:15px;
+    position:absolute;
+    top:95%;
+    left:38%;
+}
+.map-legend__colors .map-legend__legend{
+    margin-bottom:5px
+}
+.map-legend__colors .map-legend__label:first-child{
+    margin-left:0
+}
+.map-legend__label{
+    line-height:10px;
+    font-size:10px;
+    margin:0 5px;
+    height:10px
+}
+.map-legend__color{
+    font-size:10px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    width:20px;
+    height:10px
+}
+.map-legend__color:before{
+    content:"";
+    display:block;
+    height:5px;
+    width:100%;
+    flex:1 1
+}
+.map-legend__color--level-VERY_LOW:before{
+    background-color:#6bc926
+}
+.map-legend__color--level-LOW:before{
+    background-color:#d1cf1e
+}
+.map-legend__color--level-MEDIUM:before{
+    background-color:#efbb0f
+}
+.map-legend__color--level-HIGH:before{
+    background-color:#ef7120
+}
+.map-legend__color--level-VERY_HIGH:before{
+    background-color:#ef2a36
+}
+.map-legend__color--level-AIRMAGEDDON:before{
+    background-color:#9d0028
+}
+.map-legend__widget .widget-block__body{
+    display:flex
+}
+.map-legend_info:hover{
+    color: #ef2a36;
+    cursor: pointer;
+}

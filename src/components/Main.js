@@ -13,6 +13,7 @@ import '../Geocoder.css';
 import {fetchPoints} from "../actions";
 
 import pointGenerator from "../utils/pointGenerator";
+import Legend from "./Legend";
 
 
 
@@ -62,6 +63,7 @@ function mapToHour(value){
 }
 
 
+
 class Main extends Component{
 
     componentWillMount() {
@@ -76,14 +78,15 @@ class Main extends Component{
                 height: '100vh',
                 latitude: 50.0679198,
                 longitude: 19.9107528,
-                zoom: 15,
+                zoom: 10,
                 minZoom: 10
             },
             popupInfo: null,
             panelVisible: false,
             searchResultLayer: null,
             points: null,
-            visiblePoints: []
+            visiblePoints: [],
+            visibleHour: new Date().getHours(),
         };
         this.handleViewportChange = this.handleViewportChange.bind(this);
         this.onCloseControlPanel = this.onCloseControlPanel.bind(this);
@@ -158,7 +161,6 @@ class Main extends Component{
     };
 
     handleOnResult = event => {
-        // console.log(event.result);
         this.setState({
             searchResultLayer: new GeoJsonLayer({
                 id: "search-result",
@@ -171,35 +173,65 @@ class Main extends Component{
         });
     };
 
+    _mkPinmapLayer = (id, source) =>{
+        return{
+            "id": id,
+            "source": source,
+            "type": "circle",
+            "paint": {
+                "circle-radius": {
+                    stops: [
+                        [0, 2],
+                        [20, 300]
+                    ],
+                    base: 2
+                },
+                "circle-color": [
+                    "interpolate",
+                    ["linear"],
+                    ["get", "pm10"],
+                    1, "rgba(107,201,38,0)",
+                    21, "rgb(107,201,38)",
+                    61, "rgb(209,207,30)",
+                    101, "rgb(239,187,15)",
+                    141, "rgb(239,113,32)",
+                    201, "rgb(157,0,40)"
+                ],
+                "circle-opacity": 0.8
+            }
+        }
+    };
+
     _mkCirclemapLayer = (id, source) => {
         return{
             "id": id,
             "source": source,
             "type": "circle",
             // "minzoom": 7,
+            // "maxzoom": 16,
             "paint": {
-                "circle-radius":
-                    [
-                        "interpolate",
-                        ["linear"],
-                        ["zoom"],
-                        7, 90,
-                        16, 190,
+
+                "circle-radius": {
+                    stops: [
+                        [0, 0],
+                        [20, 8000]
                     ],
+                    base: 2
+                },
 
                 "circle-blur": 1,
                 "circle-color": [
                     "interpolate",
                     ["linear"],
                     ["get", "pm10"],
-                    1, "rgba(33,102,172, 0)",
-                    20, "rgb(0,255,0)",
-                    50, "rgb(127,255,0)",
-                    100, "rgb(255,255,0)",
-                    200, "rgb(255,127,0)",
-                    300, "rgb(255,0,0)"
+                    1, "rgba(107,201,38,0)",
+                    21, "rgb(107,201,38)",
+                    61, "rgb(209,207,30)",
+                    101, "rgb(239,187,15)",
+                    141, "rgb(239,113,32)",
+                    201, "rgb(157,0,40)"
                 ],
-                "circle-opacity": 0.4
+                "circle-opacity": 0.5
             }
         }
     };
@@ -219,14 +251,15 @@ class Main extends Component{
     filterByDate(hour){
         const map = this._getMap();
 
-
         const filter =
             [  "all",
-                [">", "time", hour-2],
-                ["<", "time", hour+2]
+                ["==", "time", hour],
+                // ["<", "time", hour]
             ];
 
         map.setFilter('heatmap-layer', filter);
+        map.setFilter('pin-layer', filter);
+
 
         const features = map.querySourceFeatures(HEATMAP_SOURCE_ID, {
             sourceLayer: "heatmap-layer",
@@ -234,7 +267,8 @@ class Main extends Component{
         });
 
         this.setState({
-            visiblePoints: features
+            visiblePoints: features,
+            visibleHour: hour
         });
 
     }
@@ -243,14 +277,12 @@ class Main extends Component{
         const map = this._getMap();
 
         const CONTENT = pointGenerator(this.props.points);
-        console.log(CONTENT);
         const features = CONTENT.features;
-        // const endTime = features[0].properties.time;
-        // const startTime = features[features.length - 1].properties.time;
 
         this.setState({ points: CONTENT /*,endTime, startTime, selectedTime: endTime */});
         map.addSource(HEATMAP_SOURCE_ID, { type: "geojson", data: CONTENT});
         map.addLayer(this._mkCirclemapLayer("heatmap-layer", HEATMAP_SOURCE_ID));
+        map.addLayer(this._mkPinmapLayer("pin-layer", HEATMAP_SOURCE_ID));
         this.filterByDate(new Date().getHours());
     };
 
@@ -262,7 +294,7 @@ class Main extends Component{
 
 
     formatter(value){
-        return mapToHour(value).toString();
+        return mapToHour(value).toString()+":00";
     }
 
     render(){
@@ -282,9 +314,32 @@ class Main extends Component{
                     // mapStyle="mapbox://styles/mapbox/dark-v9"
                     onViewportChange={this.handleViewportChange}
                     onLoad={this._handleMapLoaded}
-                    mapboxApiAccessToken={TOKEN} >
+                    mapboxApiAccessToken={TOKEN}
+                    onClick={(e)=>{
 
-                    { this.state.visiblePoints.map(this._renderLocationMarker) }
+                        const map = this._getMap();
+
+                        const filter =
+                            [  "all",
+                                ["==", "time", this.state.visibleHour],
+                            ];
+
+                        let visiblePoints = map.querySourceFeatures(HEATMAP_SOURCE_ID, {
+                            sourceLayer: "heatmap-layer",
+                            filter: filter
+                        });
+
+                        visiblePoints.forEach(point =>{
+                            if(Math.abs(point.geometry.coordinates[0] - e.lngLat[0]) <= 0.00016 &&
+                                Math.abs(point.geometry.coordinates[1] - e.lngLat[1]) <= 0.00016){
+                                this.setState({popupInfo: point, panelVisible: true});
+                            }
+                        });
+                        }
+                    }
+                >
+
+                    {/*{ this.state.visiblePoints.map(this._renderLocationMarker) }*/}
 
                     {this._renderPopup()}
 
@@ -320,6 +375,7 @@ class Main extends Component{
                         :
                         <div></div>
                     }
+                    <Legend/>
                 </MapGL>
                 <div style={sliderStyle}>
                     <Slider min={0} max={23} defaultValue={23} tipFormatter={this.formatter} onChange={this.filterByDate}/>
