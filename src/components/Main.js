@@ -1,54 +1,26 @@
 import React, {Component} from 'react';
-import MapGL, {Marker, Popup, NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
+import MapGL, {Popup, NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
 import {connect} from "react-redux";
 import ControlPanel from './ControlPanel';
-import LocationPin from './LocationPin';
 import LocationInfo from './LocationInfo';
-import DeckGL, { GeoJsonLayer } from "deck.gl";
-import {Slider} from "antd";
-import Geocoder from 'react-map-gl-geocoder'
-import 'antd/lib/menu/style/css';
-import '../Geocoder.css';
-
+import { GeoJsonLayer } from "deck.gl";
+import {Slider, Spin} from "antd";
 import {fetchPoints} from "../actions";
-
 import pointGenerator from "../utils/pointGenerator";
+import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
+import 'antd/lib/menu/style/css';
+import '../styles/map.css';
+import '../styles/geocoder.css';
 
+
+import Lines from './LinesDb.json';
 
 
 const TOKEN = "pk.eyJ1IjoiYXR6b24iLCJhIjoiY2p1eTZ5amo0MGUwcTRkbnJvNjdqZHRzdCJ9.Yx1QgOpBGpbL6ZlTq_TaOg";
 const HEATMAP_SOURCE_ID = "points-source";
+const LINES_SOURCE_ID = 'lines-source';
 
-
-const fullscreenControlStyle = {
-    position: 'absolute',
-    bottom: 50,
-    left: 0,
-    padding: '10px'
-};
-
-const navStyle = {
-    position: 'absolute',
-    top: 36,
-    left: 0,
-    padding: '10px'
-};
-
-const geolocateStyle = {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    margin: 10,
-};
-
-const sliderStyle = {
-    position: "absolute",
-    width: "25%",
-    top: "85%",
-    left: "35%",
-    padding: "10px"
-};
 
 function mapToHour(value){
     let hour = new Date().getHours() - (23-value);
@@ -117,25 +89,12 @@ class Main extends Component{
         });
     };
 
-
-    _renderLocationMarker = (location, index) => {
-        return (
-            <Marker
-                key={`marker-${index}`}
-                longitude={location.geometry.coordinates[0]}
-                latitude={location.geometry.coordinates[1]} >
-                <LocationPin size={20} onClick={() => this.setState({popupInfo: location, panelVisible: true})} />
-            </Marker>
-        );
-    };
-
-
-
     onCloseControlPanel(){
         this.setState({
             panelVisible: false
         })
     }
+
     _renderPopup() {
         const {popupInfo} = this.state;
 
@@ -201,6 +160,36 @@ class Main extends Component{
             }
         }
     };
+
+    _mkLinesLayer = (id, source) => {
+        return {
+            type: 'line',
+            source: source,
+            id: id,
+            paint: {
+                'line-color': 'red',
+                'line-width': 5,
+                // 'line-gradient' must be specified using an expression
+                // with the special 'line-progress' property
+                'line-gradient': [
+                    'interpolate',
+                    ['linear'],
+                    ['line-progress'],
+                    0, "green",
+                    0.1, "green",
+                    0.3, "yellow",
+                    0.5, "yellow",
+                    0.7, "red",
+                    1, "red"
+                ]
+            },
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            }
+        };
+    };
+
 
     _mkCirclemapLayer = (id, source) => {
         return{
@@ -281,16 +270,13 @@ class Main extends Component{
 
         this.setState({ points: CONTENT /*,endTime, startTime, selectedTime: endTime */});
         map.addSource(HEATMAP_SOURCE_ID, { type: "geojson", data: CONTENT});
+        map.addSource(LINES_SOURCE_ID, { type: 'geojson', lineMetrics: true, data: Lines});
         map.addLayer(this._mkCirclemapLayer("heatmap-layer", HEATMAP_SOURCE_ID));
         map.addLayer(this._mkPinmapLayer("pin-layer", HEATMAP_SOURCE_ID));
+        // map.addLayer(this._mkLinesLayer("lines-layer", LINES_SOURCE_ID));
+
         this.filterByDate(new Date().getHours());
     };
-
-    _setMapData = features => {
-        const map = this._getMap();
-        map && map.getSource(HEATMAP_SOURCE_ID).setData(this._mkFeatureCollection(features));
-    };
-
 
 
     formatter(value){
@@ -298,11 +284,14 @@ class Main extends Component{
     }
 
     render(){
-        const { viewport, searchResultLayer } = this.state;
+        const { viewport } = this.state;
 
         if(!this.props.points){
             return(
-                <div>Loading...</div>
+                <div className="loadingStyle">
+                    <p>ARMS</p>
+                    <Spin size="large" />
+                </div>
             );
         }
 
@@ -339,8 +328,6 @@ class Main extends Component{
                     }
                 >
 
-                    {/*{ this.state.visiblePoints.map(this._renderLocationMarker) }*/}
-
                     {this._renderPopup()}
 
                     <Geocoder
@@ -354,20 +341,16 @@ class Main extends Component{
                     />
 
                     <GeolocateControl
-                        style={geolocateStyle}
+                        className={"geolocateStyle"}
                         onViewportChange={this.handleViewportChange}
                         positionOptions={{enableHighAccuracy: true}}
                         trackUserLocation={true}
                     />
 
-                    {/*<DeckGL {...viewport} layers={[searchResultLayer]} />*/}
-
-
-
-                    <div className="fullscreen" style={fullscreenControlStyle}>
+                    <div className="fullscreen fullscreenControlStyle">
                         <FullscreenControl />
                     </div>
-                    <div className="nav" style={navStyle}>
+                    <div className="nav navStyle">
                         <NavigationControl onViewportChange={this.handleViewportChange} />
                     </div>
                     {this.state.panelVisible ?
@@ -377,7 +360,7 @@ class Main extends Component{
                     }
                     <Legend/>
                 </MapGL>
-                <div style={sliderStyle}>
+                <div className={"sliderStyle"}>
                     <Slider min={0} max={23} defaultValue={23} tipFormatter={this.formatter} onChange={this.filterByDate}/>
                 </div>
             </div>

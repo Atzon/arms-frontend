@@ -1,7 +1,7 @@
 import React, {PureComponent} from "react";
 import {Icon, Modal} from "antd";
 
-import '../Legend.css';
+import '../styles/legend.css';
 
 
 function info() {

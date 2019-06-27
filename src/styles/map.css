@@ -1,0 +1,38 @@
+.fullscreenControlStyle{
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    padding: 10px;
+}
+
+.navStyle{
+    position: absolute;
+    top: 36px;
+    left: 0px;
+    padding: 10px;
+}
+
+.geolocateStyle{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    margin: 10px;
+}
+
+.sliderStyle{
+    position: absolute;
+    width: 25%;
+    top: 85%;
+    left: 35%;
+    padding: 10px;
+}
+
+.loadingStyle{
+    display: flex;
+    height: 100vh;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: auto;
+    font-size: 30px;
+}
