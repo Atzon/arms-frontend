@@ -5,7 +5,7 @@ import {mapToHour} from "../utils/utils";
 import ControlPanel2 from './ControlPanel2';
 import LocationInfo from './LocationInfo';
 import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
-import {Slider, Spin} from "antd";
+import {Slider, Spin, Select} from "antd";
 import {fetchPoints} from "../actions";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
@@ -42,6 +42,7 @@ class Main2 extends Component{
                 zoom: 10,
                 minZoom: 10
             },
+            theme: "mapbox://styles/mapbox/light-v10",
             popupPm10: null,
             panelVisible: false,
             searchResultLayer: null,
@@ -54,6 +55,7 @@ class Main2 extends Component{
         this._handleMapLoaded = this._handleMapLoaded.bind(this);
         this.filterByDate = this.filterByDate.bind(this);
         this._renderLayers = this._renderLayers.bind(this);
+        this.handleThemeChange = this.handleThemeChange.bind(this);
     }
 
     componentDidMount() {
@@ -169,6 +171,10 @@ class Main2 extends Component{
     };
 
 
+    handleThemeChange(value){
+        this.setState({theme: value});
+    }
+
     formatter(value){
         return mapToHour(value).toString()+":00";
     }
@@ -190,11 +196,19 @@ class Main2 extends Component{
                 <MapGL
                     ref={this._mapRef}
                     {...viewport}
-                    // mapStyle="mapbox://styles/mapbox/dark-v9"
+                    mapStyle={this.state.theme}
                     onViewportChange={this.handleViewportChange}
                     onLoad={this._handleMapLoaded}
                     mapboxApiAccessToken={TOKEN}
                 >
+
+
+                    <Select defaultValue="Light" className="themeSelectStyle" onChange={this.handleThemeChange}>
+                        <Select.Option value="mapbox://styles/mapbox/light-v10">Light</Select.Option>
+                        <Select.Option value="mapbox://styles/mapbox/dark-v9">Dark</Select.Option>
+                        <Select.Option value="mapbox://styles/atzon/cjxwbiods1yq51cni28fi68ta">Rustical</Select.Option>
+                        <Select.Option value="mapbox://styles/atzon/cjxwbkx1b0c4j1cnztse58dmm">Decimal</Select.Option>
+                    </Select>
 
                     <DeckGL
                         viewState={viewport}
@@ -209,6 +223,7 @@ class Main2 extends Component{
                         onViewportChange={this.handleGeocoderViewportChange}
                         mapboxApiAccessToken={TOKEN}
                         position="top-left"
+                        width="200px"
                         filter={this.filterByCracow}
                     />
 

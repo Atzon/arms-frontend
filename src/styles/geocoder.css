@@ -6,6 +6,11 @@
     box-sizing: border-box;
 }
 
+.mapboxgl-ctrl-group > button {
+    width: 35px !important ;
+    height: 35px !important;
+}
+
 .mapboxgl-ctrl-geocoder {
     font-size: 18px;
     line-height: 24px;
@@ -13,8 +18,8 @@
     position: relative;
     background-color: #fff;
     width: 100%;
-    left: 4.5vw;
-    min-width: 90vw;
+    left: 8vw;
+    min-width: 80vw;
     z-index: 1;
     border-radius: 4px;
     transition: width .25s, min-width .25s;
