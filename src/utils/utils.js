@@ -1,4 +1,4 @@
-export default function generatePoints(data){
+export function generatePoints(data){
 
     let geoJson = {
             type: "FeatureCollection",
@@ -26,4 +26,16 @@ export default function generatePoints(data){
     });
 
     return geoJson;
+}
+
+export function mapToHour(value){
+    let hour = new Date().getHours() - (23-value);
+
+    if(hour>23){
+        hour = hour-24;
+    }
+    if(hour<0){
+        hour = 24 + hour;
+    }
+    return hour;
 }

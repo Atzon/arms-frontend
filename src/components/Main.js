@@ -6,7 +6,7 @@ import LocationInfo from './LocationInfo';
 import { GeoJsonLayer } from "deck.gl";
 import {Slider, Spin} from "antd";
 import {fetchPoints} from "../actions";
-import pointGenerator from "../utils/pointGenerator";
+import {generatePoints} from "../utils/utils";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
@@ -265,7 +265,7 @@ class Main extends Component{
     _handleMapLoaded = event => {
         const map = this._getMap();
 
-        const CONTENT = pointGenerator(this.props.points);
+        const CONTENT = generatePoints(this.props.points);
         const features = CONTENT.features;
 
         this.setState({ points: CONTENT /*,endTime, startTime, selectedTime: endTime */});
