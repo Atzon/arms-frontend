@@ -1,25 +1,18 @@
 import React, {Component} from 'react';
-import MapGL, {Popup, NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
+import MapGL, {InteractiveMap, Popup, NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
 import {connect} from "react-redux";
-import ControlPanel from './ControlPanel';
+import ControlPanel2 from './ControlPanel2';
 import LocationInfo from './LocationInfo';
-import { GeoJsonLayer } from "deck.gl";
+import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
 import {Slider, Spin} from "antd";
 import {fetchPoints} from "../actions";
-import pointGenerator from "../utils/pointGenerator";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
 import '../styles/map.css';
 import '../styles/geocoder.css';
 
-
-import Lines from './LinesDb.json';
-
-
 const TOKEN = "pk.eyJ1IjoiYXR6b24iLCJhIjoiY2p1eTZ5amo0MGUwcTRkbnJvNjdqZHRzdCJ9.Yx1QgOpBGpbL6ZlTq_TaOg";
-const HEATMAP_SOURCE_ID = "points-source";
-const LINES_SOURCE_ID = 'lines-source';
 
 
 function mapToHour(value){
@@ -34,9 +27,16 @@ function mapToHour(value){
     return hour;
 }
 
+const colorRange = [
+    [107,201,38],
+    [107,201,38],
+    [209,207,30],
+    [239,187,15],
+    [239,113,32],
+    [157,0,  40]
+];
 
-
-class Main extends Component{
+class Main4 extends Component{
 
     componentWillMount() {
         this.props.fetchPoints();
@@ -53,10 +53,9 @@ class Main extends Component{
                 zoom: 10,
                 minZoom: 10
             },
-            popupInfo: null,
+            popupPm10: null,
             panelVisible: false,
             searchResultLayer: null,
-            points: null,
             visiblePoints: [],
             visibleHour: new Date().getHours(),
         };
@@ -65,6 +64,7 @@ class Main extends Component{
         this._mapRef = React.createRef();
         this._handleMapLoaded = this._handleMapLoaded.bind(this);
         this.filterByDate = this.filterByDate.bind(this);
+        this._renderLayers = this._renderLayers.bind(this);
     }
 
     componentDidMount() {
@@ -132,151 +132,50 @@ class Main extends Component{
         });
     };
 
-    _mkPinmapLayer = (id, source) =>{
-        return{
-            "id": id,
-            "source": source,
-            "type": "circle",
-            "paint": {
-                "circle-radius": {
-                    stops: [
-                        [0, 2],
-                        [20, 300]
-                    ],
-                    base: 2
-                },
-                "circle-color": [
-                    "interpolate",
-                    ["linear"],
-                    ["get", "pm10"],
-                    1, "rgba(107,201,38,0)",
-                    21, "rgb(107,201,38)",
-                    61, "rgb(209,207,30)",
-                    101, "rgb(239,187,15)",
-                    141, "rgb(239,113,32)",
-                    201, "rgb(157,0,40)"
-                ],
-                "circle-opacity": 0.8
-            }
-        }
-    };
-
-    _mkLinesLayer = (id, source) => {
-        return {
-            type: 'line',
-            source: source,
-            id: id,
-            paint: {
-                'line-color': 'red',
-                'line-width': 5,
-                // 'line-gradient' must be specified using an expression
-                // with the special 'line-progress' property
-                'line-gradient': [
-                    'interpolate',
-                    ['linear'],
-                    ['line-progress'],
-                    0, "green",
-                    0.1, "green",
-                    0.3, "yellow",
-                    0.5, "yellow",
-                    0.7, "red",
-                    1, "red"
-                ]
-            },
-            layout: {
-                'line-cap': 'round',
-                'line-join': 'round'
-            }
-        };
-    };
-
-
-    _mkCirclemapLayer = (id, source) => {
-        return{
-            "id": id,
-            "source": source,
-            "type": "circle",
-            // "minzoom": 7,
-            // "maxzoom": 16,
-            "paint": {
-
-                "circle-radius": {
-                    stops: [
-                        [0, 0],
-                        [20, 8000]
-                    ],
-                    base: 2
-                },
-
-                "circle-blur": 1,
-                "circle-color": [
-                    "interpolate",
-                    ["linear"],
-                    ["get", "pm10"],
-                    1, "rgba(107,201,38,0)",
-                    21, "rgb(107,201,38)",
-                    61, "rgb(209,207,30)",
-                    101, "rgb(239,187,15)",
-                    141, "rgb(239,113,32)",
-                    201, "rgb(157,0,40)"
-                ],
-                "circle-opacity": 0.5
-            }
-        }
-    };
-
-    _getMap = () => {
-        return this._mapRef.current ? this._mapRef.current.getMap() : null;
-    };
 
     filterByCracow = (item) =>{
         return item.context.map(function (i) {
             return (i.id.split('.').shift() === 'place' && i.text === 'Kraków');
         }).reduce(function (acc, cur) {
-                return acc || cur;
-            });
+            return acc || cur;
+        });
     };
 
     filterByDate(hour){
-        const map = this._getMap();
-
-        const filter =
-            [  "all",
-                ["==", "time", hour],
-                // ["<", "time", hour]
-            ];
-
-        map.setFilter('heatmap-layer', filter);
-        map.setFilter('pin-layer', filter);
-
-
-        const features = map.querySourceFeatures(HEATMAP_SOURCE_ID, {
-            sourceLayer: "heatmap-layer",
-            filter: filter
-        });
-
+        const visiblePoints = this.props.points.filter(point => new Date(point.datetime).getHours() == hour);
         this.setState({
-            visiblePoints: features,
+            visiblePoints: visiblePoints,
             visibleHour: hour
-        });
+        })
+    }
 
+
+
+    _renderLayers() {
+        const {data = this.state.visiblePoints, cellSize = 50, gpuAggregation = true, aggregation = 'Mean'} = this.props;
+
+        return [
+            new ScreenGridLayer({
+                id: 'grid',
+                data,
+                opacity: 0.2,
+                pickable: true,
+                getPosition: d => [d.location.longitude, d.location.latitude],
+                getWeight: d => d.PM10,
+                onClick: (info, _) => {
+                  console.log(info.object.cellWeight);
+                  this.setState({popupPm10: info.object.cellWeight, panelVisible: true});
+                },
+                cellSizePixels: cellSize,
+                colorDomain: [0, 150],
+                colorRange,
+                gpuAggregation,
+                aggregation
+            })
+        ];
     }
 
     _handleMapLoaded = event => {
-        const map = this._getMap();
-
-        const CONTENT = pointGenerator(this.props.points);
-        const features = CONTENT.features;
-
-        this.setState({ points: CONTENT /*,endTime, startTime, selectedTime: endTime */});
-        map.addSource(HEATMAP_SOURCE_ID, { type: "geojson", data: CONTENT});
-        map.addSource(LINES_SOURCE_ID, { type: 'geojson', lineMetrics: true, data: Lines});
-        map.addLayer(this._mkCirclemapLayer("heatmap-layer", HEATMAP_SOURCE_ID));
-        map.addLayer(this._mkPinmapLayer("pin-layer", HEATMAP_SOURCE_ID));
-
-
-        // map.addLayer(this._mkLinesLayer("lines-layer", LINES_SOURCE_ID));
-
         this.filterByDate(new Date().getHours());
     };
 
@@ -306,31 +205,13 @@ class Main extends Component{
                     onViewportChange={this.handleViewportChange}
                     onLoad={this._handleMapLoaded}
                     mapboxApiAccessToken={TOKEN}
-                    onClick={(e)=>{
-
-                        const map = this._getMap();
-
-                        const filter =
-                            [  "all",
-                                ["==", "time", this.state.visibleHour],
-                            ];
-
-                        let visiblePoints = map.querySourceFeatures(HEATMAP_SOURCE_ID, {
-                            sourceLayer: "heatmap-layer",
-                            filter: filter
-                        });
-
-                        visiblePoints.forEach(point =>{
-                            if(Math.abs(point.geometry.coordinates[0] - e.lngLat[0]) <= 0.00016 &&
-                                Math.abs(point.geometry.coordinates[1] - e.lngLat[1]) <= 0.00016){
-                                this.setState({popupInfo: point, panelVisible: true});
-                            }
-                        });
-                        }
-                    }
                 >
 
-                    {this._renderPopup()}
+                    <DeckGL
+                        viewState={viewport}
+                        layers={this._renderLayers()}
+                    />
+
 
                     <Geocoder
                         mapRef={this._mapRef}
@@ -356,7 +237,7 @@ class Main extends Component{
                         <NavigationControl onViewportChange={this.handleViewportChange} />
                     </div>
                     {this.state.panelVisible ?
-                        <ControlPanel popupInfo={this.state.popupInfo} onClose={this.onCloseControlPanel} />
+                        <ControlPanel2 popupInfo={this.state.popupPm10} onClose={this.onCloseControlPanel} />
                         :
                         <div></div>
                     }
@@ -377,5 +258,5 @@ function mapStateToProps(state){
     };
 }
 
-export default connect(mapStateToProps, {fetchPoints})(Main);
+export default connect(mapStateToProps, {fetchPoints})(Main4);
 
