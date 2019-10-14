@@ -8,6 +8,7 @@ export default () => (
         <Switch>
             <Route exact path="/" component={Map}/>
             <Route exact path="/test" component={Map2}/>
+            <Route exact path="/test/:source" component={Map2}/>
         </Switch>
     </BrowserRouter>
 );

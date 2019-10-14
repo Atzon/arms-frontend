@@ -6,7 +6,7 @@ import ControlPanel2 from './ControlPanel2';
 import LocationInfo from './LocationInfo';
 import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
 import {Slider, Spin, Select} from "antd";
-import {fetchPoints} from "../actions";
+import {fetchPoints, fetchPointsFromFile} from "../actions";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
@@ -28,7 +28,13 @@ const colorRange = [
 class Main2 extends Component{
 
     componentWillMount() {
-        this.props.fetchPoints();
+        const { source } = this.props.match.params;
+        if(source){
+            this.props.fetchPointsFromFile(source);
+        }
+        else{
+            this.props.fetchPoints();
+        }
     }
 
     constructor(props) {
@@ -262,5 +268,5 @@ function mapStateToProps(state){
     };
 }
 
-export default connect(mapStateToProps, {fetchPoints})(Main2);
+export default connect(mapStateToProps, {fetchPoints, fetchPointsFromFile})(Main2);
 
