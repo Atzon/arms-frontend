@@ -149,7 +149,7 @@ class Main2 extends Component{
 
 
     _renderLayers() {
-        const {data = this.state.visiblePoints, cellSize = 50, gpuAggregation = true, aggregation = 'Mean'} = this.props;
+        const {data = this.state.visiblePoints, cellSize = 50, gpuAggregation = false, aggregation = 'Mean'} = this.props;
 
         return [
             new ScreenGridLayer({
