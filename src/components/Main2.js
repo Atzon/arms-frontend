@@ -52,8 +52,7 @@ class Main2 extends Component{
             popupPm10: null,
             panelVisible: false,
             searchResultLayer: null,
-            visiblePoints: [],
-            visibleHour: new Date().getHours(),
+            visiblePoints: []
         };
         this.handleViewportChange = this.handleViewportChange.bind(this);
         this.onCloseControlPanel = this.onCloseControlPanel.bind(this);
@@ -139,10 +138,10 @@ class Main2 extends Component{
     };
 
     filterByDate(hour){
-        const visiblePoints = this.props.points.filter(point => new Date(point.datetime).getHours() == hour);
+        const visiblePoints = this.props.points.filter(point =>
+            new Date(point.datetime).getHours() == mapToHour(hour));
         this.setState({
             visiblePoints: visiblePoints,
-            visibleHour: hour
         })
     }
 
@@ -158,13 +157,20 @@ class Main2 extends Component{
                 opacity: 0.2,
                 pickable: true,
                 getPosition: d => [d.location.longitude, d.location.latitude],
-                getWeight: d => d.PM10,
+                getWeight: d => {
+                    if(d.PM10>300)
+                        return 300;
+                    else
+                        return d.PM10;
+                },
                 onClick: (info, _) => {
                   console.log(info.object.cellWeight);
                   this.setState({popupPm10: info.object.cellWeight, panelVisible: true});
                 },
                 cellSizePixels: cellSize,
-                colorDomain: [0, 150],
+                colorDomain: [0, 300],
+                highlightColor: [102, 102, 255],
+                autoHighlight: true,
                 colorRange,
                 gpuAggregation,
                 aggregation
@@ -173,7 +179,7 @@ class Main2 extends Component{
     }
 
     _handleMapLoaded = event => {
-        this.filterByDate(new Date().getHours());
+        this.filterByDate(23);
     };
 
 
@@ -269,4 +275,3 @@ function mapStateToProps(state){
 }
 
 export default connect(mapStateToProps, {fetchPoints, fetchPointsFromFile})(Main2);
-

@@ -9,19 +9,19 @@ const PM2_5_MAX = 120;
 export default class ControlPanel2 extends PureComponent {
 
     getColor = (value)=>{
-        if(value <= 20){
+        if(value < 50){
             return '#6bc926';
         }
-        else if(value > 20 && value <= 60){
+        else if(value >= 50 && value < 100){
             return '#d1cf1e';
         }
-        else if(value > 60 && value <= 100){
+        else if(value >= 100 && value < 150){
             return '#efbb0f'
         }
-        else if(value > 100 && value <= 140){
+        else if(value >= 150 && value < 200){
             return '#ef7120'
         }
-        else if(value > 141 && value <= 200){
+        else if(value >= 200 && value < 300){
             return '#ef2a36'
         }
         else{

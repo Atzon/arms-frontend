@@ -1,8 +1,6 @@
 import axios from 'axios';
-import POINTS_1 from './5lines.json';
-import POINTS_5 from './5lines.json';
-import POINTS_ALL from './alllines.json';
-
+import POINTS_1 from './5lines2.json';
+import POINTS_5 from './5lines2.json';
 
 const ROOT_URL = 'https://arms-backend-server.herokuapp.com/api';
 //const ROOT_URL = 'http://localhost:3000/api';
@@ -36,7 +34,7 @@ export function fetchPointsFromFile(opt){
     }
     else{
         return {
-            type: FETCH_POINTS, payload: POINTS_ALL
+            type: FETCH_POINTS, payload: POINTS_5
         };
     }
 }
