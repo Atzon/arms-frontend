@@ -7,36 +7,81 @@ const ROOT_URL = 'https://arms-backend-server.herokuapp.com/api';
 
 
 export const FETCH_POINTS = 'FETCH_POINTS';
-export const FETCH_POINTS_MANGO = 'FETCH_POINTS_MANGO';
-export const FETCH_POINTS_AIRLY = 'FETCH_POINTS_AIRLY';
-
+export const FETCH_MANGO = 'FETCH_MANGO';
+export const FETCH_AIRLY = 'FETCH_AIRLY';
+export const GET_AIRLY = 'GET_AIRLY';
+export const GET_MANGO = 'GET_MANGO';
+export const TOGGLE_MANGO = 'TOGGLE_MANGO';
+export const TOGGLE_AIRLY = 'TOGGLE_AIRLY';
 
 export function fetchPoints(){
 
-    const request = axios.get(`${ROOT_URL}/points`);
+    return (dispatch, getState) => {
+        const { mango, airly, enabled } = getState();
 
-    return(dispatch) => {
-        request.then(({data}) =>{
-            dispatch({type: FETCH_POINTS, payload: data});
+        const mangoRes = enabled.mango ? mango : [];
+        const airlyRes = enabled.airly ? airly: [];
+
+
+        dispatch({
+            type: FETCH_POINTS,
+            payload: [...mangoRes, ...airlyRes]
         });
+    };
+
+}
+
+export function fetchAirly() {
+
+
+    return (dispatch, getState) => {
+        const { loaded } = getState();
+
+        if(loaded){
+            dispatch({
+                type: FETCH_AIRLY,
+                loaded: true
+            });
+        }
+        else{
+            const request = axios.get(`${ROOT_URL}/points`);
+
+            request.then(({data}) =>{
+                dispatch({type: FETCH_AIRLY, loaded: false, payload: data});
+            });
+        }
     };
 }
 
-export function fetchPoints2(){
-
-    const request = axios.get(`${ROOT_URL}/points`);
-
-    return(dispatch) => {
-        request.then(({data}) =>{
-            dispatch({type: FETCH_POINTS_AIRLY, payload: data});
-        });
-    };
-}
-
-export function fetchPointsFromFile2(){
+export function fetchMango() {
+    console.log("fetching mango...");
     return {
-        type: FETCH_POINTS_AIRLY, payload: POINTS_5
+        type: FETCH_MANGO, payload: POINTS_5
     };
+}
+
+export function getAirly(){
+    return {
+        type: GET_AIRLY
+    };
+}
+
+export function getMango(){
+    return {
+        type: GET_MANGO
+    };
+}
+
+export function toggleAirly(){
+    return {
+        type: TOGGLE_AIRLY
+    }
+}
+
+export function toggleMango(){
+    return {
+        type: TOGGLE_AIRLY
+    }
 }
 
 export function fetchPointsFromFile(opt){
@@ -58,14 +103,4 @@ export function fetchPointsFromFile(opt){
     }
 }
 
-export function removePointsFromFile(){
-    return {
-        type: FETCH_POINTS_MANGO, payload: []
-    };
-}
 
-export function removePoints(){
-    return {
-        type: FETCH_POINTS_AIRLY, payload: []
-    }
-}

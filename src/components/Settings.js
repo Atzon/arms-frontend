@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import { Menu, Icon, Dropdown, Radio} from 'antd';
+import {fetchAirly, fetchMango, fetchPoints, toggleAirly, toggleMango} from "../actions";
 import {THEME_CHANGE_EVENT, SOURCES_CHANGE_EVENT} from '../utils/utils';
+import {connect} from "react-redux";
 
 const { SubMenu } = Menu;
 
@@ -12,7 +14,7 @@ const notChoosed = {
     backgroundColor: ''
 };
 
-export default class Settings extends Component {
+class Settings extends Component {
 
     constructor(props) {
         super(props);
@@ -36,6 +38,18 @@ export default class Settings extends Component {
     selectSource = key => {
         let {sources} = this.state;
 
+        if (key == 'mango'){
+            this.props.fetchMango();
+            this.props.toggleMango();
+        }
+        else if (key == 'airly'){
+            this.props.fetchAirly();
+            this.props.toggleAirly();
+        }
+        else{
+            this.props.toggleAirly();
+        }
+
         if (sources.includes(key)) {
             this.setState({sources: sources.filter(x => x != key)});
             this.props.onChange(SOURCES_CHANGE_EVENT, sources.filter(x => x != key));
@@ -44,7 +58,6 @@ export default class Settings extends Component {
             this.setState({sources: [...sources, key]});
             this.props.onChange(SOURCES_CHANGE_EVENT, [...sources, key]);
         }
-        // this.props.onChange('SOURCE', this.state.sources);
     };
 
     setTheme = key => {
@@ -93,8 +106,8 @@ export default class Settings extends Component {
                         </a>
                     </div>
                 </Dropdown>
-
-
         );
     }
 }
+
+export default connect(null, {fetchPoints, fetchMango, fetchAirly, toggleMango, toggleAirly})(Settings);

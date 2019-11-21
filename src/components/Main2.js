@@ -7,7 +7,7 @@ import Settings from './Settings';
 import LocationInfo from './LocationInfo';
 import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
 import {Slider, Spin, Select} from "antd";
-import {fetchPoints, fetchPoints2, fetchPointsFromFile, fetchPointsFromFile2, removePoints,removePointsFromFile} from "../actions";
+import {fetchPoints, fetchMango} from "../actions";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
@@ -30,14 +30,10 @@ class Main2 extends Component{
 
     componentWillMount() {
         const { source } = this.props.match.params;
-        if(source){
-            // this.props.fetchPointsFromFile(source);
-            this.props.fetchPointsFromFile2();
-        }
-        else{
-            // this.props.fetchPoints();
-            this.props.fetchPoints2();
-        }
+
+        this.props.fetchMango();
+        // this.props.fetchPoints();
+
     }
 
     constructor(props) {
@@ -143,8 +139,7 @@ class Main2 extends Component{
     };
 
     filterByDate(hour){
-        const points = this.props.mango.concat(this.props.airly);
-        const visiblePoints = points.filter(point =>
+        const visiblePoints = this.props.points.filter(point =>
             new Date(point.datetime).getHours() == mapToHour(hour));
         this.setState({
             visiblePoints: visiblePoints,
@@ -216,21 +211,9 @@ class Main2 extends Component{
                     if(d == THEME_CHANGE_EVENT){
                         this.setState({theme: e});
                     }
-                    if(d == SOURCES_CHANGE_EVENT){
-                        if(e.includes('mango')){
-                            this.props.fetchPointsFromFile2();
-                        }
-                        else{
-                            this.props.removePointsFromFile();
-                        }
-                        if(e.includes('airly')){
-                            this.props.fetchPoints2();
-                        }
-                        else{
-                            this.props.removePoints();
-                        }
+                    else{
+                        this.props.fetchPoints();
                     }
-                    console.log("dupa");
                 }
                 }/>
                 <MapGL
@@ -241,22 +224,10 @@ class Main2 extends Component{
                     onLoad={this._handleMapLoaded}
                     mapboxApiAccessToken={TOKEN}
                 >
-
-
-                    {/*<Select defaultValue="Light" className="themeSelectStyle" onChange={this.handleThemeChange}>*/}
-                        {/*<Select.Option value="mapbox://styles/mapbox/light-v10">Light</Select.Option>*/}
-                        {/*<Select.Option value="mapbox://styles/mapbox/dark-v9">Dark</Select.Option>*/}
-                        {/*<Select.Option value="mapbox://styles/atzon/cjxwbiods1yq51cni28fi68ta">Rustical</Select.Option>*/}
-                        {/*<Select.Option value="mapbox://styles/atzon/cjxwbkx1b0c4j1cnztse58dmm">Decimal</Select.Option>*/}
-                    {/*</Select>*/}
-
-
-
                     <DeckGL
                         viewState={viewport}
                         layers={this._renderLayers()}
                     />
-
 
                     <Geocoder
                         mapRef={this._mapRef}
@@ -301,9 +272,7 @@ class Main2 extends Component{
 function mapStateToProps(state){
     return{
         points: state.points,
-        airly: state.airly,
-        mango: state.mango
     };
 }
 
-export default connect(mapStateToProps, {fetchPoints,fetchPoints2, removePointsFromFile, removePoints, fetchPointsFromFile,fetchPointsFromFile2})(Main2);
+export default connect(mapStateToProps, {fetchPoints, fetchMango})(Main2);
