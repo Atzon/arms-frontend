@@ -1,12 +1,13 @@
 import React, {Component} from 'react';
-import MapGL, {InteractiveMap, Popup, NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
+import MapGL, {Popup, NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
 import {connect} from "react-redux";
-import {mapToHour} from "../utils/utils";
+import {mapToHour, THEME_CHANGE_EVENT, SOURCES_CHANGE_EVENT} from "../utils/utils";
 import ControlPanel2 from './ControlPanel2';
+import Settings from './Settings';
 import LocationInfo from './LocationInfo';
 import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
 import {Slider, Spin, Select} from "antd";
-import {fetchPoints, fetchPointsFromFile} from "../actions";
+import {fetchPoints, fetchPoints2, fetchPointsFromFile, fetchPointsFromFile2, removePoints,removePointsFromFile} from "../actions";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
@@ -30,10 +31,12 @@ class Main2 extends Component{
     componentWillMount() {
         const { source } = this.props.match.params;
         if(source){
-            this.props.fetchPointsFromFile(source);
+            // this.props.fetchPointsFromFile(source);
+            this.props.fetchPointsFromFile2();
         }
         else{
-            this.props.fetchPoints();
+            // this.props.fetchPoints();
+            this.props.fetchPoints2();
         }
     }
 
@@ -52,6 +55,8 @@ class Main2 extends Component{
             popupPm10: null,
             panelVisible: false,
             searchResultLayer: null,
+            airly: [],
+            mangoOH: [],
             visiblePoints: []
         };
         this.handleViewportChange = this.handleViewportChange.bind(this);
@@ -138,7 +143,8 @@ class Main2 extends Component{
     };
 
     filterByDate(hour){
-        const visiblePoints = this.props.points.filter(point =>
+        const points = this.props.mango.concat(this.props.airly);
+        const visiblePoints = points.filter(point =>
             new Date(point.datetime).getHours() == mapToHour(hour));
         this.setState({
             visiblePoints: visiblePoints,
@@ -194,7 +200,7 @@ class Main2 extends Component{
     render(){
         const { viewport } = this.state;
 
-        if(!this.props.points){
+        if(!this.props.points && !this.props.airly && !this.props.mango){
             return(
                 <div className="loadingStyle">
                     <p>ARMS</p>
@@ -205,6 +211,28 @@ class Main2 extends Component{
 
         return(
             <div>
+                <Settings ref={this.state.settings} onChange={(d,e) => {
+                    console.log(d,e);
+                    if(d == THEME_CHANGE_EVENT){
+                        this.setState({theme: e});
+                    }
+                    if(d == SOURCES_CHANGE_EVENT){
+                        if(e.includes('mango')){
+                            this.props.fetchPointsFromFile2();
+                        }
+                        else{
+                            this.props.removePointsFromFile();
+                        }
+                        if(e.includes('airly')){
+                            this.props.fetchPoints2();
+                        }
+                        else{
+                            this.props.removePoints();
+                        }
+                    }
+                    console.log("dupa");
+                }
+                }/>
                 <MapGL
                     ref={this._mapRef}
                     {...viewport}
@@ -215,12 +243,14 @@ class Main2 extends Component{
                 >
 
 
-                    <Select defaultValue="Light" className="themeSelectStyle" onChange={this.handleThemeChange}>
-                        <Select.Option value="mapbox://styles/mapbox/light-v10">Light</Select.Option>
-                        <Select.Option value="mapbox://styles/mapbox/dark-v9">Dark</Select.Option>
-                        <Select.Option value="mapbox://styles/atzon/cjxwbiods1yq51cni28fi68ta">Rustical</Select.Option>
-                        <Select.Option value="mapbox://styles/atzon/cjxwbkx1b0c4j1cnztse58dmm">Decimal</Select.Option>
-                    </Select>
+                    {/*<Select defaultValue="Light" className="themeSelectStyle" onChange={this.handleThemeChange}>*/}
+                        {/*<Select.Option value="mapbox://styles/mapbox/light-v10">Light</Select.Option>*/}
+                        {/*<Select.Option value="mapbox://styles/mapbox/dark-v9">Dark</Select.Option>*/}
+                        {/*<Select.Option value="mapbox://styles/atzon/cjxwbiods1yq51cni28fi68ta">Rustical</Select.Option>*/}
+                        {/*<Select.Option value="mapbox://styles/atzon/cjxwbkx1b0c4j1cnztse58dmm">Decimal</Select.Option>*/}
+                    {/*</Select>*/}
+
+
 
                     <DeckGL
                         viewState={viewport}
@@ -270,8 +300,10 @@ class Main2 extends Component{
 
 function mapStateToProps(state){
     return{
-        points: state.points
+        points: state.points,
+        airly: state.airly,
+        mango: state.mango
     };
 }
 
-export default connect(mapStateToProps, {fetchPoints, fetchPointsFromFile})(Main2);
+export default connect(mapStateToProps, {fetchPoints,fetchPoints2, removePointsFromFile, removePoints, fetchPointsFromFile,fetchPointsFromFile2})(Main2);

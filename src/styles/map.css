@@ -28,6 +28,20 @@
     z-index: 1000;
 }
 
+.settingsStyle{
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 40px;
+    height: 40px;
+    align-content: center;
+    text-align: center;
+    display: inline-grid;
+    /*padding: 0px !important;*/
+    margin: 10px;
+    z-index: 1000;
+}
+
 .geolocateStyle{
     position: absolute;
     top: 0px;
@@ -52,4 +66,3 @@
     overflow: auto;
     font-size: 30px;
 }
-
