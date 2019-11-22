@@ -42,6 +42,13 @@
     z-index: 1000;
 }
 
+.buttonSet{
+    position: absolute;
+    top: 100px;
+    right: 100px;
+    z-index: 1000;
+}
+
 .geolocateStyle{
     position: absolute;
     top: 0px;

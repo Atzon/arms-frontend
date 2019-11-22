@@ -39,12 +39,8 @@ class Settings extends Component {
         let {sources} = this.state;
 
         if (key == 'mango'){
-            this.props.fetchMango();
             this.props.toggleMango();
-        }
-        else if (key == 'airly'){
-            this.props.fetchAirly();
-            this.props.toggleAirly();
+
         }
         else{
             this.props.toggleAirly();

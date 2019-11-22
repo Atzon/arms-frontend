@@ -6,8 +6,8 @@ import ControlPanel2 from './ControlPanel2';
 import Settings from './Settings';
 import LocationInfo from './LocationInfo';
 import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
-import {Slider, Spin, Select} from "antd";
-import {fetchPoints, fetchMango} from "../actions";
+import {Slider, Spin, Select, Button} from "antd";
+import {fetchPoints, fetchMango, fetchAirly, fetchPoints2,toggleMango, toggleAirly} from "../actions";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
@@ -26,15 +26,48 @@ const colorRange = [
     [157,0,  40]
 ];
 
+const emptyPoint =     {
+    "_id": 0,
+    "datetime": "",
+    "PM2_5": 0,
+    "PM10": 0,
+    "location": {
+        "latitude": 0,
+        "longitude": 0
+    }
+};
+
 class Main2 extends Component{
 
     componentWillMount() {
         const { source } = this.props.match.params;
 
-        this.props.fetchMango();
-        // this.props.fetchPoints();
 
+        // this.props.fetchPoints2();
+        this.props.toggleMango();
+        // this.props.fetchAirly();
     }
+
+    componentWillReceiveProps(nextProps, nextContext) {
+        // console.log("will", nextProps.points);
+        //
+        const visiblePoints = nextProps.points.filter(point =>
+            new Date(point.datetime).getHours() == mapToHour(23));
+        // console.log(visiblePoints);
+        this.setState({
+            visiblePoints: visiblePoints,
+        })
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if(prevProps.points.length != 0 && this.props.points.length == 0){
+            this.setState({visiblePoints: [emptyPoint]});
+        }
+        // if(this.props.points != prevProps.points){
+        //     this.filterByDate(23);
+        // }
+    }
+
 
     constructor(props) {
         super(props);
@@ -195,7 +228,7 @@ class Main2 extends Component{
     render(){
         const { viewport } = this.state;
 
-        if(!this.props.points && !this.props.airly && !this.props.mango){
+        if(this.state.visiblePoints == 0){
             return(
                 <div className="loadingStyle">
                     <p>ARMS</p>
@@ -212,10 +245,12 @@ class Main2 extends Component{
                         this.setState({theme: e});
                     }
                     else{
-                        this.props.fetchPoints();
+                        // this.props.fetchPoints();
                     }
                 }
                 }/>
+
+
                 <MapGL
                     ref={this._mapRef}
                     {...viewport}
@@ -275,4 +310,4 @@ function mapStateToProps(state){
     };
 }
 
-export default connect(mapStateToProps, {fetchPoints, fetchMango})(Main2);
+export default connect(mapStateToProps, {fetchPoints, fetchMango, fetchAirly, toggleMango, toggleAirly})(Main2);

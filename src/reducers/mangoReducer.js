@@ -1,19 +1,20 @@
-import {FETCH_MANGO, GET_MANGO, fetchPoints} from "../actions";
+import {FETCH_MANGO, TOGGLE_MANGO } from "../actions";
 
-let isLoaded = false;
-
-export default function(state = [], action){
+export default function(state = {data: [], loaded: false, enabled: false}, action){
     switch(action.type){
         case FETCH_MANGO:
-            if(!isLoaded){
-                console.log('FETCH_MANGO ', [...state, action.payload]);
-                isLoaded = true;
-                return [...state, action.payload];
+            if(!state.loaded){
+                console.log('fetching mango not loaded ', {...state, data: action.payload, loaded: true, enabled: true});
+                return {...state, data: action.payload, loaded: true};
             }
-            break;
-        case GET_MANGO:
-            console.log('GET_MANGO ', state);
+            else{
+                console.log('fetching mango loaded ', state);
+                return state;
+            }
+        case TOGGLE_MANGO:
+            console.log("mango enabled:", {...state, enabled: !state.enabled});
+            return {...state, enabled: !state.enabled};
+        default:
             return state;
     }
-    return state;
 }

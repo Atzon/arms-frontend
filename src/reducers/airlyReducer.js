@@ -1,19 +1,19 @@
-import {FETCH_AIRLY, GET_AIRLY} from "../actions";
+import {FETCH_AIRLY, TOGGLE_AIRLY} from "../actions";
 
-let isLoaded = false;
-
-export default function(state = [], action){
+export default function(state = {data: [], loaded: false, enabled: false}, action){
     switch(action.type){
         case FETCH_AIRLY:
-            if(!isLoaded){
-                console.log('FETCH_AIRLY ', [...state, action.payload]);
-                isLoaded = true;
-                return [...state, action.payload];   
+            if(!state.loaded){
+                console.log('fetching airly not loaded ', {...state, data: action.payload, loaded: true, enabled: true});
+                return {...state, data: action.payload, loaded: true};
             }
-            break;
-        case GET_AIRLY:
-            console.log('GET_AIRLY ', state);
+            else{
+                console.log('fetching airly loaded ', state);
+                return state;
+            }
+        case TOGGLE_AIRLY:
+            return {...state, enabled: !state.enabled};
+        default:
             return state;
     }
-    return state;
 }
