@@ -5,7 +5,7 @@ import ControlPanel from './ControlPanel';
 import LocationInfo from './LocationInfo';
 import { GeoJsonLayer } from "deck.gl";
 import {Slider, Spin} from "antd";
-import {fetchPoints, toggleAirly} from "../actions";
+import {enableAirly} from "../actions";
 import {generatePoints} from "../utils/utils";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
@@ -39,7 +39,7 @@ function mapToHour(value){
 class Main extends Component{
 
     componentWillMount() {
-        this.props.toggleAirly();
+        this.props.enableAirly();
     }
 
     constructor(props) {
@@ -377,5 +377,5 @@ function mapStateToProps(state){
     };
 }
 
-export default connect(mapStateToProps, {fetchPoints, toggleAirly})(Main);
+export default connect(mapStateToProps, {enableAirly})(Main);
 

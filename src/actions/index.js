@@ -155,3 +155,12 @@ export function sourceChange(sources){
             dispatch(disableAirly());
     };
 }
+
+export function initialise(sources){
+    return (dispatch, getState) => {
+        if(sources)
+            return dispatch(sourceChange(sources));
+        const {settings} = getState();
+        return dispatch(sourceChange(settings.sources));
+    }
+}

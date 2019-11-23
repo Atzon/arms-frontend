@@ -1,24 +1,12 @@
 import React, {Component} from 'react';
 import { Menu, Icon, Dropdown, Radio, Checkbox} from 'antd';
-import {fetchAirly, fetchMango, fetchPoints, toggleAirly, toggleMango, themeChange, sourceChange} from "../actions";
+import {themeChange, sourceChange} from "../actions";
 import {connect} from "react-redux";
-import 'antd/lib/menu/style/css';
 import {AIRLY, MANGO} from "../utils/utils";
 
 class Settings extends Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            sources: ['mango'],
-            theme: "",
-        };
-    }
-
     onThemeChange = (e) => {
-        // this.setState({
-        //     value: e.target.value,
-        // });
         this.props.themeChange(e.target.value);
 
     };
@@ -32,28 +20,26 @@ class Settings extends Component {
             display: 'block',
             height: '30px',
             lineHeight: '30px',
+            margin: '5px'
         };
-        const options = [
-            { label: 'Mango', value: MANGO },
-            { label: 'Airly', value: AIRLY, style: radioStyle }
-        ];
         return (
                 <Dropdown overlay={
                     <Menu>
-                        <p>Źródło</p>
-                        <Checkbox.Group style={radioStyle} defaultValue={[MANGO]} onChange={this.onSourceChange}>
-                            <Checkbox value={MANGO}>Mango</Checkbox>
-                            <br />
-                            <Checkbox value={AIRLY}>Airly</Checkbox>
-                            <br />
-                        </Checkbox.Group>
+                        <h style={{display: "flex", justifyContent: "center"}}>Źródło</h>
+                        <div>
+                            <Checkbox.Group style={radioStyle} defaultValue={this.props.sources} onChange={this.onSourceChange}>
+                                <Checkbox value={MANGO}>Mango</Checkbox>
+                                <br />
+                                <Checkbox value={AIRLY}>Airly</Checkbox>
+                            </Checkbox.Group>
+                        </div>
                         <br/>
-
-                        <p>Motyw</p>
+                        <br/>
+                        <h style={{display: "flex", justifyContent: "center"}}>Motyw</h>
                         <Radio.Group defaultValue="mapbox://styles/mapbox/light-v10" buttonStyle="solid" onChange={this.onThemeChange}>
-                            <Radio value="mapbox://styles/mapbox/light-v10" style={radioStyle}>
+                          <Radio value="mapbox://styles/mapbox/light-v10" style={radioStyle}>
                                 Light
-                            </Radio>
+                          </Radio>
                             <Radio value="mapbox://styles/mapbox/dark-v9" style={radioStyle}>
                                 Dark
                             </Radio>
@@ -76,4 +62,4 @@ class Settings extends Component {
     }
 }
 
-export default connect(null, {fetchPoints, sourceChange, fetchMango, fetchAirly, toggleMango, toggleAirly, themeChange})(Settings);
+export default connect(null, {sourceChange, themeChange})(Settings);

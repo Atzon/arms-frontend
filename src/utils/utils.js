@@ -42,3 +42,13 @@ export function mapToHour(value){
 
 export const MANGO = 'MANGO';
 export const AIRLY = 'AIRLY';
+export const EMPTY_POINT =     {
+    "_id": 0,
+    "datetime": "",
+    "PM2_5": 0,
+    "PM10": 0,
+    "location": {
+        "latitude": 0,
+        "longitude": 0
+    }
+};
