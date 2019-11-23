@@ -39,3 +39,22 @@ export function mapToHour(value){
     }
     return hour;
 }
+
+export const MANGO = 'MANGO';
+export const AIRLY = 'AIRLY';
+export const LIGHT_THEME = 'mapbox://styles/mapbox/light-v10';
+export const DARK_THEME = 'mapbox://styles/mapbox/dark-v9';
+export const RUSTICAL_THEME = 'mapbox://styles/atzon/cjxwbiods1yq51cni28fi68ta';
+export const DECIMAL_THEME = 'mapbox://styles/atzon/cjxwbkx1b0c4j1cnztse58dmm';
+export const TOKEN = "pk.eyJ1IjoiYXR6b24iLCJhIjoiY2p1eTZ5amo0MGUwcTRkbnJvNjdqZHRzdCJ9.Yx1QgOpBGpbL6ZlTq_TaOg";
+
+export const EMPTY_POINT =     {
+    "_id": 0,
+    "datetime": "",
+    "PM2_5": 0,
+    "PM10": 0,
+    "location": {
+        "latitude": 0,
+        "longitude": 0
+    }
+};

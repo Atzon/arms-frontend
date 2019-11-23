@@ -5,7 +5,7 @@ import ControlPanel from './ControlPanel';
 import LocationInfo from './LocationInfo';
 import { GeoJsonLayer } from "deck.gl";
 import {Slider, Spin} from "antd";
-import {fetchPoints} from "../actions";
+import {fetchPoints_old} from "../actions";
 import {generatePoints} from "../utils/utils";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
@@ -39,7 +39,7 @@ function mapToHour(value){
 class Main extends Component{
 
     componentWillMount() {
-        this.props.fetchPoints();
+        this.props.fetchPoints_old();
     }
 
     constructor(props) {
@@ -233,8 +233,8 @@ class Main extends Component{
         return item.context.map(function (i) {
             return (i.id.split('.').shift() === 'place' && i.text === 'Kraków');
         }).reduce(function (acc, cur) {
-                return acc || cur;
-            });
+            return acc || cur;
+        });
     };
 
     filterByDate(hour){
@@ -326,7 +326,7 @@ class Main extends Component{
                                 this.setState({popupInfo: point, panelVisible: true});
                             }
                         });
-                        }
+                    }
                     }
                 >
 
@@ -373,9 +373,8 @@ class Main extends Component{
 
 function mapStateToProps(state){
     return{
-        points: state.points
+        points: state.pointsOld
     };
 }
 
-export default connect(mapStateToProps, {fetchPoints})(Main);
-
+export default connect(mapStateToProps, {fetchPoints_old})(Main);

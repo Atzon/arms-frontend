@@ -1,20 +1,18 @@
 import React, {Component} from 'react';
-import MapGL, {InteractiveMap, Popup, NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
+import MapGL, {NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
 import {connect} from "react-redux";
-import {mapToHour} from "../utils/utils";
+import {mapToHour, TOKEN, AIRLY, MANGO, EMPTY_POINT, LIGHT_THEME} from "../utils/utils";
 import ControlPanel2 from './ControlPanel2';
-import LocationInfo from './LocationInfo';
+import Settings from './Settings';
 import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
-import {Slider, Spin, Select} from "antd";
-import {fetchPoints, fetchPointsFromFile} from "../actions";
+import {Slider, Spin} from "antd";
+import {initialise, changeHour} from "../actions";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
+import "antd/dist/antd.css";
 import '../styles/map.css';
 import '../styles/geocoder.css';
-
-const TOKEN = "pk.eyJ1IjoiYXR6b24iLCJhIjoiY2p1eTZ5amo0MGUwcTRkbnJvNjdqZHRzdCJ9.Yx1QgOpBGpbL6ZlTq_TaOg";
-
 
 const colorRange = [
     [107,201,38],
@@ -25,17 +23,26 @@ const colorRange = [
     [157,0,  40]
 ];
 
+
 class Main2 extends Component{
 
     componentWillMount() {
-        const { source } = this.props.match.params;
-        if(source){
-            this.props.fetchPointsFromFile(source);
-        }
-        else{
-            this.props.fetchPoints();
-        }
+        this.props.initialise([MANGO, AIRLY], LIGHT_THEME);
     }
+
+    // componentWillReceiveProps(nextProps, nextContext) {
+    //     const visiblePoints = nextProps.points.filter(point =>
+    //         new Date(point.datetime).getHours() == mapToHour(23));
+    //     this.setState({
+    //         visiblePoints: visiblePoints,
+    //     })
+    // }
+    //
+    // componentDidUpdate(prevProps, prevState, snapshot) {
+    //     if(prevProps.points.length != 0 && this.props.points.length == 0){
+    //         this.setState({visiblePoints: [EMPTY_POINT]});
+    //     }
+    // }
 
     constructor(props) {
         super(props);
@@ -48,10 +55,11 @@ class Main2 extends Component{
                 zoom: 10,
                 minZoom: 10
             },
-            theme: "mapbox://styles/mapbox/light-v10",
             popupPm10: null,
             panelVisible: false,
             searchResultLayer: null,
+            airly: [],
+            mangoOH: [],
             visiblePoints: []
         };
         this.handleViewportChange = this.handleViewportChange.bind(this);
@@ -91,21 +99,6 @@ class Main2 extends Component{
         })
     }
 
-    _renderPopup() {
-        const {popupInfo} = this.state;
-
-        return popupInfo && (
-            <Popup tipSize={5}
-                   anchor="top"
-                   longitude={popupInfo.geometry.coordinates[0]}
-                   latitude={popupInfo.geometry.coordinates[1]}
-                   closeOnClick={false}
-                   onClose={() => this.setState({popupInfo: null, panelVisible: false})} >
-                <LocationInfo info={popupInfo} />
-            </Popup>
-        );
-    }
-
     handleGeocoderViewportChange = viewport => {
         const geocoderDefaultOverrides = { transitionDuration: 1000 };
 
@@ -138,17 +131,13 @@ class Main2 extends Component{
     };
 
     filterByDate(hour){
-        const visiblePoints = this.props.points.filter(point =>
-            new Date(point.datetime).getHours() == mapToHour(hour));
-        this.setState({
-            visiblePoints: visiblePoints,
-        })
+        this.props.changeHour(mapToHour(hour));
     }
 
 
 
     _renderLayers() {
-        const {data = this.state.visiblePoints, cellSize = 50, gpuAggregation = false, aggregation = 'Mean'} = this.props;
+        const {data = this.props.points.data, cellSize = 50, gpuAggregation = false, aggregation = 'Mean'} = this.props;
 
         return [
             new ScreenGridLayer({
@@ -205,28 +194,20 @@ class Main2 extends Component{
 
         return(
             <div>
+                <Settings sources={this.props.settings.sources} theme={this.props.settings.theme}/>
+
                 <MapGL
                     ref={this._mapRef}
                     {...viewport}
-                    mapStyle={this.state.theme}
+                    mapStyle={this.props.settings.theme}
                     onViewportChange={this.handleViewportChange}
                     onLoad={this._handleMapLoaded}
                     mapboxApiAccessToken={TOKEN}
                 >
-
-
-                    <Select defaultValue="Light" className="themeSelectStyle" onChange={this.handleThemeChange}>
-                        <Select.Option value="mapbox://styles/mapbox/light-v10">Light</Select.Option>
-                        <Select.Option value="mapbox://styles/mapbox/dark-v9">Dark</Select.Option>
-                        <Select.Option value="mapbox://styles/atzon/cjxwbiods1yq51cni28fi68ta">Rustical</Select.Option>
-                        <Select.Option value="mapbox://styles/atzon/cjxwbkx1b0c4j1cnztse58dmm">Decimal</Select.Option>
-                    </Select>
-
                     <DeckGL
                         viewState={viewport}
                         layers={this._renderLayers()}
                     />
-
 
                     <Geocoder
                         mapRef={this._mapRef}
@@ -270,8 +251,9 @@ class Main2 extends Component{
 
 function mapStateToProps(state){
     return{
-        points: state.points
+        points: state.points,
+        settings: state.settings
     };
 }
 
-export default connect(mapStateToProps, {fetchPoints, fetchPointsFromFile})(Main2);
+export default connect(mapStateToProps, {initialise, changeHour})(Main2);
