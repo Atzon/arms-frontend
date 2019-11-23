@@ -40,5 +40,5 @@ export function mapToHour(value){
     return hour;
 }
 
-export const THEME_CHANGE_EVENT = 'THEME_CHANGE_EVENT';
-export const SOURCES_CHANGE_EVENT = 'SOURCES_CHANGE_EVENT';
+export const MANGO = 'MANGO';
+export const AIRLY = 'AIRLY';

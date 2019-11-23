@@ -1,6 +1,7 @@
 import axios from 'axios';
 import POINTS_1 from './5lines2.json';
 import POINTS_5 from './5lines2.json';
+import {AIRLY, MANGO} from "../utils/utils";
 
 const ROOT_URL = 'https://arms-backend-server.herokuapp.com/api';
 //const ROOT_URL = 'http://localhost:3000/api';
@@ -9,8 +10,13 @@ const ROOT_URL = 'https://arms-backend-server.herokuapp.com/api';
 export const FETCH_POINTS = 'FETCH_POINTS';
 export const FETCH_MANGO = 'FETCH_MANGO';
 export const FETCH_AIRLY = 'FETCH_AIRLY';
+export const ENABLE_AIRLY = 'ENABLE_AIRLY';
+export const DISABLE_AIRLY = 'DISABLE_AIRLY';
+export const ENABLE_MANGO = 'ENABLE_MANGO';
+export const DISABLE_MANGO = 'DISABLE_MANGO';
 export const TOGGLE_MANGO = 'TOGGLE_MANGO';
 export const TOGGLE_AIRLY = 'TOGGLE_AIRLY';
+export const THEME_CHANGE = 'THEME_CHANGE';
 
 export function fetchPoints(){
 
@@ -75,6 +81,46 @@ export function toggleAirly(){
     };
 }
 
+export function enableAirly(){
+
+    return (dispatch, getState) => {
+        const { airly } = getState();
+
+        if(!airly.loaded)
+            dispatch(fetchAirly()) ;
+
+        dispatch({type: ENABLE_AIRLY});
+        dispatch(fetchPoints());
+    };
+}
+
+export function disableAirly(){
+    return (dispatch) => {
+        dispatch({type: DISABLE_AIRLY});
+        dispatch(fetchPoints());
+    };
+}
+
+export function enableMango(){
+
+    return (dispatch, getState) => {
+        const { airly } = getState();
+
+        if(!airly.loaded)
+            dispatch(fetchMango()) ;
+
+        dispatch({type: ENABLE_MANGO});
+        dispatch(fetchPoints());
+    };
+}
+
+export function disableMango(){
+    return (dispatch) => {
+        dispatch({type: DISABLE_MANGO});
+        dispatch(fetchPoints());
+    };
+}
+
 export function toggleMango(){
 
     return (dispatch, getState) => {
@@ -88,4 +134,24 @@ export function toggleMango(){
     };
 }
 
+export function themeChange(theme){
+    return{
+        type: THEME_CHANGE, theme: theme
+    }
+}
 
+export function sourceChange(sources){
+
+    return (dispatch) => {
+
+        if(sources.includes(MANGO))
+            dispatch(enableMango());
+        else
+            dispatch(disableMango());
+
+        if(sources.includes(AIRLY))
+            dispatch(enableAirly());
+        else
+            dispatch(disableAirly());
+    };
+}

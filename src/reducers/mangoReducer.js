@@ -1,4 +1,4 @@
-import {FETCH_MANGO, TOGGLE_MANGO } from "../actions";
+import {DISABLE_MANGO, ENABLE_MANGO, FETCH_MANGO, TOGGLE_MANGO} from "../actions";
 
 export default function(state = {data: [], loaded: false, enabled: false}, action){
     switch(action.type){
@@ -14,6 +14,10 @@ export default function(state = {data: [], loaded: false, enabled: false}, actio
         case TOGGLE_MANGO:
             console.log("mango enabled:", {...state, enabled: !state.enabled});
             return {...state, enabled: !state.enabled};
+        case ENABLE_MANGO:
+            return {...state, enabled: true};
+        case DISABLE_MANGO:
+            return {...state, enabled: false};
         default:
             return state;
     }

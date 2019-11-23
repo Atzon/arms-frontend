@@ -1,18 +1,9 @@
 import React, {Component} from 'react';
-import { Menu, Icon, Dropdown, Radio} from 'antd';
-import {fetchAirly, fetchMango, fetchPoints, toggleAirly, toggleMango} from "../actions";
-import {THEME_CHANGE_EVENT, SOURCES_CHANGE_EVENT} from '../utils/utils';
+import { Menu, Icon, Dropdown, Radio, Checkbox} from 'antd';
+import {fetchAirly, fetchMango, fetchPoints, toggleAirly, toggleMango, themeChange, sourceChange} from "../actions";
 import {connect} from "react-redux";
-
-const { SubMenu } = Menu;
-
-const choosed = {
-    backgroundColor: 'red'
-};
-
-const notChoosed = {
-    backgroundColor: ''
-};
+import 'antd/lib/menu/style/css';
+import {AIRLY, MANGO} from "../utils/utils";
 
 class Settings extends Component {
 
@@ -20,80 +11,59 @@ class Settings extends Component {
         super(props);
         this.state = {
             sources: ['mango'],
-            theme: "mapbox://styles/mapbox/light-v10",
+            theme: "",
         };
-        this.selectSource = this.selectSource.bind(this);
-        this.setTheme = this.setTheme.bind(this);
     }
 
-    isSource = (key) => {
-        return this.state.sources.includes(key);
-    } ;
+    onThemeChange = (e) => {
+        // this.setState({
+        //     value: e.target.value,
+        // });
+        this.props.themeChange(e.target.value);
 
-
-    isTheme = (key) => {
-        return this.state.theme == key;
-    } ;
-
-    selectSource = key => {
-        let {sources} = this.state;
-
-        if (key == 'mango'){
-            this.props.toggleMango();
-
-        }
-        else{
-            this.props.toggleAirly();
-        }
-
-        if (sources.includes(key)) {
-            this.setState({sources: sources.filter(x => x != key)});
-            this.props.onChange(SOURCES_CHANGE_EVENT, sources.filter(x => x != key));
-        }
-        else {
-            this.setState({sources: [...sources, key]});
-            this.props.onChange(SOURCES_CHANGE_EVENT, [...sources, key]);
-        }
     };
-
-    setTheme = key => {
-        this.setState({theme: key});
-        this.props.onChange(THEME_CHANGE_EVENT, key);
+    onSourceChange = (e) => {
+        this.props.sourceChange(e);
     };
-
 
 
     render() {
+        const radioStyle = {
+            display: 'block',
+            height: '30px',
+            lineHeight: '30px',
+        };
+        const options = [
+            { label: 'Mango', value: MANGO },
+            { label: 'Airly', value: AIRLY, style: radioStyle }
+        ];
         return (
-
                 <Dropdown overlay={
                     <Menu>
-                        <span>Źródło</span>
-                        <Menu.Item style={this.isSource('mango') ? choosed : notChoosed}
-                        onClick={_ => this.selectSource('mango')}>
-                            MangoOH
-                        </Menu.Item>
-                        <Menu.Item style={this.isSource( 'airly') ? choosed : notChoosed}
-                        onClick={_ => this.selectSource('airly')}>
-                            Airly
-                        </Menu.Item>
-                        <span>Motyw</span>
-                        <Menu.Item style={this.isTheme( 'mapbox://styles/mapbox/light-v10') ? choosed : notChoosed}
-                                   onClick={_ => this.setTheme('mapbox://styles/mapbox/light-v10')}>
-                            Light
-                        </Menu.Item>
-                        <Menu.Item style={this.isTheme( 'mapbox://styles/mapbox/dark-v9') ? choosed : notChoosed}
-                                   onClick={_ => this.setTheme('mapbox://styles/mapbox/dark-v9')}>
-                            Dark
-                        </Menu.Item>
-                        <Menu.Item style={this.isTheme( 'mapbox://styles/atzon/cjxwbiods1yq51cni28fi68ta') ? choosed : notChoosed}
-                                   onClick={_ => this.setTheme('mapbox://styles/atzon/cjxwbiods1yq51cni28fi68ta')}>
-                            Rustical
-                        </Menu.Item>
-                        <Menu.Item style={this.isTheme( 'mapbox://styles/atzon/cjxwbkx1b0c4j1cnztse58dmm') ? choosed : notChoosed}
-                                   onClick={_ => this.setTheme('mapbox://styles/atzon/cjxwbkx1b0c4j1cnztse58dmm')}>
-                        Decimal
-                        </Menu.Item>
+                        <p>Źródło</p>
+                        <Checkbox.Group style={radioStyle} defaultValue={[MANGO]} onChange={this.onSourceChange}>
+                            <Checkbox value={MANGO}>Mango</Checkbox>
+                            <br />
+                            <Checkbox value={AIRLY}>Airly</Checkbox>
+                            <br />
+                        </Checkbox.Group>
+                        <br/>
+
+                        <p>Motyw</p>
+                        <Radio.Group defaultValue="mapbox://styles/mapbox/light-v10" buttonStyle="solid" onChange={this.onThemeChange}>
+                            <Radio value="mapbox://styles/mapbox/light-v10" style={radioStyle}>
+                                Light
+                            </Radio>
+                            <Radio value="mapbox://styles/mapbox/dark-v9" style={radioStyle}>
+                                Dark
+                            </Radio>
+                            <Radio value="mapbox://styles/atzon/cjxwbiods1yq51cni28fi68ta" style={radioStyle}>
+                                Rustical
+                            </Radio>
+                            <Radio value="mapbox://styles/atzon/cjxwbkx1b0c4j1cnztse58dmm" style={radioStyle}>
+                                Decimal
+                            </Radio>
+                        </Radio.Group>
                     </Menu>
                 }>
                     <div className="mapboxgl-ctrl mapboxgl-ctrl-group settingsStyle">
@@ -106,4 +76,4 @@ class Settings extends Component {
     }
 }
 
-export default connect(null, {fetchPoints, fetchMango, fetchAirly, toggleMango, toggleAirly})(Settings);
+export default connect(null, {fetchPoints, sourceChange, fetchMango, fetchAirly, toggleMango, toggleAirly, themeChange})(Settings);

@@ -1,16 +1,17 @@
 import React, {Component} from 'react';
 import MapGL, {Popup, NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
 import {connect} from "react-redux";
-import {mapToHour, THEME_CHANGE_EVENT, SOURCES_CHANGE_EVENT} from "../utils/utils";
+import {mapToHour} from "../utils/utils";
 import ControlPanel2 from './ControlPanel2';
 import Settings from './Settings';
 import LocationInfo from './LocationInfo';
 import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
-import {Slider, Spin, Select, Button} from "antd";
+import {Slider, Spin, Select, Button, Radio, Menu} from "antd";
 import {fetchPoints, fetchMango, fetchAirly, fetchPoints2,toggleMango, toggleAirly} from "../actions";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
+import "antd/dist/antd.css";
 import '../styles/map.css';
 import '../styles/geocoder.css';
 
@@ -80,7 +81,6 @@ class Main2 extends Component{
                 zoom: 10,
                 minZoom: 10
             },
-            theme: "mapbox://styles/mapbox/light-v10",
             popupPm10: null,
             panelVisible: false,
             searchResultLayer: null,
@@ -123,21 +123,6 @@ class Main2 extends Component{
         this.setState({
             panelVisible: false
         })
-    }
-
-    _renderPopup() {
-        const {popupInfo} = this.state;
-
-        return popupInfo && (
-            <Popup tipSize={5}
-                   anchor="top"
-                   longitude={popupInfo.geometry.coordinates[0]}
-                   latitude={popupInfo.geometry.coordinates[1]}
-                   closeOnClick={false}
-                   onClose={() => this.setState({popupInfo: null, panelVisible: false})} >
-                <LocationInfo info={popupInfo} />
-            </Popup>
-        );
     }
 
     handleGeocoderViewportChange = viewport => {
@@ -228,7 +213,7 @@ class Main2 extends Component{
     render(){
         const { viewport } = this.state;
 
-        if(this.state.visiblePoints == 0){
+        if(!this.props.points){
             return(
                 <div className="loadingStyle">
                     <p>ARMS</p>
@@ -239,22 +224,12 @@ class Main2 extends Component{
 
         return(
             <div>
-                <Settings ref={this.state.settings} onChange={(d,e) => {
-                    console.log(d,e);
-                    if(d == THEME_CHANGE_EVENT){
-                        this.setState({theme: e});
-                    }
-                    else{
-                        // this.props.fetchPoints();
-                    }
-                }
-                }/>
-
+                <Settings/>
 
                 <MapGL
                     ref={this._mapRef}
                     {...viewport}
-                    mapStyle={this.state.theme}
+                    mapStyle={this.props.settings.theme}
                     onViewportChange={this.handleViewportChange}
                     onLoad={this._handleMapLoaded}
                     mapboxApiAccessToken={TOKEN}
@@ -307,6 +282,7 @@ class Main2 extends Component{
 function mapStateToProps(state){
     return{
         points: state.points,
+        settings: state.settings
     };
 }
 
