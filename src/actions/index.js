@@ -1,13 +1,14 @@
 import axios from 'axios';
 import POINTS_1 from './5lines2.json';
 import POINTS_5 from './5lines2.json';
-import {AIRLY, MANGO} from "../utils/utils";
+import {AIRLY, EMPTY_POINT, MANGO, mapToHour} from "../utils/utils";
 
 const ROOT_URL = 'https://arms-backend-server.herokuapp.com/api';
 //const ROOT_URL = 'http://localhost:3000/api';
 
 
 export const FETCH_POINTS = 'FETCH_POINTS';
+export const FETCH_POINTS_OLD = 'FETCH_POINTS_OLD';
 export const FETCH_MANGO = 'FETCH_MANGO';
 export const FETCH_AIRLY = 'FETCH_AIRLY';
 export const ENABLE_AIRLY = 'ENABLE_AIRLY';
@@ -17,37 +18,42 @@ export const DISABLE_MANGO = 'DISABLE_MANGO';
 export const TOGGLE_MANGO = 'TOGGLE_MANGO';
 export const TOGGLE_AIRLY = 'TOGGLE_AIRLY';
 export const THEME_CHANGE = 'THEME_CHANGE';
+export const CHANGE_HOUR = 'CHANGE_HOUR';
 
 export function fetchPoints(){
 
     return (dispatch, getState) => {
-        const { mango, airly } = getState();
+        const { mango, airly, points } = getState();
 
         const mangoRes = mango.enabled ? mango.data : [];
         const airlyRes = airly.enabled ? airly.data : [];
 
-        console.log("FETCH ALL POINTS ", mango, airly);
+        let result = [...mangoRes, ...airlyRes].filter(point =>
+            new Date(point.datetime).getHours() == points.hour
+        );
 
+        if(result.length == 0){
+            result = [EMPTY_POINT]
+        }
 
         dispatch({
             type: FETCH_POINTS,
-            payload: [...mangoRes, ...airlyRes]
+            payload: result
         });
     };
 
 }
 
-export function fetchPoints2(){
+export function fetchPoints_old(){
 
     const request = axios.get(`${ROOT_URL}/points`);
 
     return(dispatch) => {
         request.then(({data}) =>{
-            dispatch({type: "FETCH_POINTS2", payload: data});
+            dispatch({type: FETCH_POINTS_OLD, payload: data});
         });
     };
 }
-
 
 export function fetchAirly() {
     return (dispatch, getState) => {
@@ -168,5 +174,12 @@ export function initialise(sources, theme){
         if(theme)
             dispatch(themeChange(theme));
 
+    }
+}
+
+export function changeHour(hour){
+    return (dispatch) => {
+        dispatch({type: CHANGE_HOUR, hour});
+        dispatch(fetchPoints());
     }
 }

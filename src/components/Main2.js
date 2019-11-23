@@ -1,20 +1,18 @@
 import React, {Component} from 'react';
 import MapGL, {NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
 import {connect} from "react-redux";
-import {mapToHour, AIRLY, MANGO, EMPTY_POINT, LIGHT_THEME} from "../utils/utils";
+import {mapToHour, TOKEN, AIRLY, MANGO, EMPTY_POINT, LIGHT_THEME} from "../utils/utils";
 import ControlPanel2 from './ControlPanel2';
 import Settings from './Settings';
 import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
 import {Slider, Spin} from "antd";
-import {initialise} from "../actions";
+import {initialise, changeHour} from "../actions";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
 import "antd/dist/antd.css";
 import '../styles/map.css';
 import '../styles/geocoder.css';
-
-const TOKEN = "pk.eyJ1IjoiYXR6b24iLCJhIjoiY2p1eTZ5amo0MGUwcTRkbnJvNjdqZHRzdCJ9.Yx1QgOpBGpbL6ZlTq_TaOg";
 
 const colorRange = [
     [107,201,38],
@@ -32,19 +30,19 @@ class Main2 extends Component{
         this.props.initialise([MANGO, AIRLY], LIGHT_THEME);
     }
 
-    componentWillReceiveProps(nextProps, nextContext) {
-        const visiblePoints = nextProps.points.filter(point =>
-            new Date(point.datetime).getHours() == mapToHour(23));
-        this.setState({
-            visiblePoints: visiblePoints,
-        })
-    }
-
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        if(prevProps.points.length != 0 && this.props.points.length == 0){
-            this.setState({visiblePoints: [EMPTY_POINT]});
-        }
-    }
+    // componentWillReceiveProps(nextProps, nextContext) {
+    //     const visiblePoints = nextProps.points.filter(point =>
+    //         new Date(point.datetime).getHours() == mapToHour(23));
+    //     this.setState({
+    //         visiblePoints: visiblePoints,
+    //     })
+    // }
+    //
+    // componentDidUpdate(prevProps, prevState, snapshot) {
+    //     if(prevProps.points.length != 0 && this.props.points.length == 0){
+    //         this.setState({visiblePoints: [EMPTY_POINT]});
+    //     }
+    // }
 
     constructor(props) {
         super(props);
@@ -133,17 +131,13 @@ class Main2 extends Component{
     };
 
     filterByDate(hour){
-        const visiblePoints = this.props.points.filter(point =>
-            new Date(point.datetime).getHours() == mapToHour(hour));
-        this.setState({
-            visiblePoints: visiblePoints,
-        })
+        this.props.changeHour(mapToHour(hour));
     }
 
 
 
     _renderLayers() {
-        const {data = this.state.visiblePoints, cellSize = 50, gpuAggregation = false, aggregation = 'Mean'} = this.props;
+        const {data = this.props.points.data, cellSize = 50, gpuAggregation = false, aggregation = 'Mean'} = this.props;
 
         return [
             new ScreenGridLayer({
@@ -262,4 +256,4 @@ function mapStateToProps(state){
     };
 }
 
-export default connect(mapStateToProps, {initialise})(Main2);
+export default connect(mapStateToProps, {initialise, changeHour})(Main2);
