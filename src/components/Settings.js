@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import { Menu, Icon, Dropdown, Radio, Checkbox} from 'antd';
 import {themeChange, sourceChange} from "../actions";
 import {connect} from "react-redux";
-import {AIRLY, MANGO} from "../utils/utils";
+import {AIRLY, MANGO, LIGHT_THEME, DARK_THEME, RUSTICAL_THEME, DECIMAL_THEME} from "../utils/utils";
 
 class Settings extends Component {
 
@@ -36,17 +36,17 @@ class Settings extends Component {
                         <br/>
                         <br/>
                         <h style={{display: "flex", justifyContent: "center"}}>Motyw</h>
-                        <Radio.Group defaultValue="mapbox://styles/mapbox/light-v10" buttonStyle="solid" onChange={this.onThemeChange}>
-                          <Radio value="mapbox://styles/mapbox/light-v10" style={radioStyle}>
+                        <Radio.Group defaultValue={this.props.theme} buttonStyle="solid" onChange={this.onThemeChange}>
+                          <Radio value={LIGHT_THEME} style={radioStyle}>
                                 Light
                           </Radio>
-                            <Radio value="mapbox://styles/mapbox/dark-v9" style={radioStyle}>
+                            <Radio value={DARK_THEME} style={radioStyle}>
                                 Dark
                             </Radio>
-                            <Radio value="mapbox://styles/atzon/cjxwbiods1yq51cni28fi68ta" style={radioStyle}>
+                            <Radio value={RUSTICAL_THEME} style={radioStyle}>
                                 Rustical
                             </Radio>
-                            <Radio value="mapbox://styles/atzon/cjxwbkx1b0c4j1cnztse58dmm" style={radioStyle}>
+                            <Radio value={DECIMAL_THEME} style={radioStyle}>
                                 Decimal
                             </Radio>
                         </Radio.Group>

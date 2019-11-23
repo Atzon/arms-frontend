@@ -156,11 +156,17 @@ export function sourceChange(sources){
     };
 }
 
-export function initialise(sources){
+export function initialise(sources, theme){
     return (dispatch, getState) => {
-        if(sources)
-            return dispatch(sourceChange(sources));
         const {settings} = getState();
-        return dispatch(sourceChange(settings.sources));
+
+        if(sources)
+            dispatch(sourceChange(sources));
+        else
+            dispatch(sourceChange(settings.sources));
+
+        if(theme)
+            dispatch(themeChange(theme));
+
     }
 }

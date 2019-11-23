@@ -5,8 +5,8 @@ import ControlPanel from './ControlPanel';
 import LocationInfo from './LocationInfo';
 import { GeoJsonLayer } from "deck.gl";
 import {Slider, Spin} from "antd";
-import {enableAirly} from "../actions";
-import {generatePoints} from "../utils/utils";
+import {initialise} from "../actions";
+import {AIRLY, EMPTY_POINT, generatePoints, MANGO} from "../utils/utils";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
@@ -39,7 +39,7 @@ function mapToHour(value){
 class Main extends Component{
 
     componentWillMount() {
-        this.props.enableAirly();
+        this.props.initialise([AIRLY]);
     }
 
     constructor(props) {
@@ -288,7 +288,7 @@ class Main extends Component{
     render(){
         const { viewport } = this.state;
 
-        if(!this.props.points){
+        if(!this.props.airly.loaded){
             return(
                 <div className="loadingStyle">
                     <p>ARMS</p>
@@ -373,9 +373,10 @@ class Main extends Component{
 
 function mapStateToProps(state){
     return{
-        points: state.points
+        points: state.points,
+        airly: state.airly
     };
 }
 
-export default connect(mapStateToProps, {enableAirly})(Main);
+export default connect(mapStateToProps, {initialise})(Main);
 

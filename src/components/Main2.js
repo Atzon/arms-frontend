@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import MapGL, {NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
 import {connect} from "react-redux";
-import {mapToHour, AIRLY, MANGO, EMPTY_POINT} from "../utils/utils";
+import {mapToHour, AIRLY, MANGO, EMPTY_POINT, LIGHT_THEME} from "../utils/utils";
 import ControlPanel2 from './ControlPanel2';
 import Settings from './Settings';
 import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
@@ -29,7 +29,7 @@ const colorRange = [
 class Main2 extends Component{
 
     componentWillMount() {
-        this.props.initialise([MANGO, AIRLY]);
+        this.props.initialise([MANGO, AIRLY], LIGHT_THEME);
     }
 
     componentWillReceiveProps(nextProps, nextContext) {
@@ -200,7 +200,7 @@ class Main2 extends Component{
 
         return(
             <div>
-                <Settings sources={this.props.settings.sources}/>
+                <Settings sources={this.props.settings.sources} theme={this.props.settings.theme}/>
 
                 <MapGL
                     ref={this._mapRef}
