@@ -10,18 +10,15 @@ with open('5lines.json') as json_file:
 with open("5lines2.json", "w") as jsonFile:
     json.dump(data, jsonFile)
 
-def findWorstPoint(data):
-    worstPm = 0.0
-    foundPoint = None
-    for point in data:
-        currentPM = point["PM10"]
-        if currentPM > worstPm:
-            worstPm=currentPM
-            foundPoint=point
-    return foundPoint
+def findWorstPoint(current, potential):
+    currentPM = current["PM10"]
+    potentialWorstPM = potential["PM10"]
+    if currentPM < potentialWorstPM:
+            return potential
+    return current
 
 
-def groupDataHourly(data):
+def getWorstForEveryHour(data):
     dates = {}
     for point in data:
         date  = point['datetime']
@@ -31,21 +28,14 @@ def groupDataHourly(data):
         key = "%s/%s/%s %s" % (dt_object.month, dt_object.day, dt_object.year, dt_object.hour)
 
         if(dates.__contains__(key)):
-            dates[key].append(point)
+            worstPoint = findWorstPoint(dates.get(key), point)
+            dates[key] = worstPoint
         else:
-            dates[key] = [point]
+            dates[key] = point
         
     return dates
 
-def getWorstForEveryHour(data): 
-    worstHourly = {}
-    for key in data.keys(): 
-        worstFromHour = findWorstPoint(data[key])
-        worstHourly[key]=worstFromHour
-    return worstHourly
-
-dates = groupDataHourly(data)
-worstHourly = getWorstForEveryHour(dates)
+worstHourly = getWorstForEveryHour(data)
 
 print(worstHourly)
 
