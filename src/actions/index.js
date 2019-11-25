@@ -19,6 +19,34 @@ export const TOGGLE_MANGO = 'TOGGLE_MANGO';
 export const TOGGLE_AIRLY = 'TOGGLE_AIRLY';
 export const THEME_CHANGE = 'THEME_CHANGE';
 export const CHANGE_HOUR = 'CHANGE_HOUR';
+export const TEST_ACTION = 'TEST_ACTION';
+
+
+export function getTest(){
+    
+    var dict = {};
+    var pointDate;
+    return (dispatch, getState) => {
+        const {points} = getState();
+
+        let result = points.data.filter(point =>
+            {
+            pointDate = new Date(point.datetime).getHours();
+            if(pointDate in dict){
+                if(point.properties.pm10 > dict[pointDate].properties.pm10){
+                    dict[pointDate]=point
+                    return true
+                }
+            }
+            else{
+                return false
+            }
+        }
+        );
+        result = [...new Set(result)]  
+        dispatch({type: TEST_ACTION, payload: result});
+    }
+}
 
 export function fetchPoints(){
 
