@@ -5,8 +5,8 @@ import {mapToHour, TOKEN, AIRLY, MANGO, EMPTY_POINT, LIGHT_THEME} from "../utils
 import ControlPanel2 from './ControlPanel2';
 import Settings from './Settings';
 import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
-import {Slider, Spin} from "antd";
-import {initialise, changeHour} from "../actions";
+import {Slider, Spin, Button} from "antd";
+import {initialise, changeHour, getTest} from "../actions";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
@@ -196,6 +196,7 @@ class Main2 extends Component{
             <div>
                 <Settings sources={this.props.settings.sources} theme={this.props.settings.theme}/>
 
+                <Button style={{zIndex: "1000", position: "absolute", top: "50px", left: "50px"}} onClick={d => this.props.getTest()}>Test action trigger</Button>
                 <MapGL
                     ref={this._mapRef}
                     {...viewport}
@@ -252,8 +253,10 @@ class Main2 extends Component{
 function mapStateToProps(state){
     return{
         points: state.points,
-        settings: state.settings
+        settings: state.settings,
+        test: state.test // tutaj beda przechowywane te odfiltrowane punkty z godzina > 0,
+        // zeby sie do nich dostac: this.props.test
     };
 }
 
-export default connect(mapStateToProps, {initialise, changeHour})(Main2);
+export default connect(mapStateToProps, {initialise, changeHour, getTest})(Main2);

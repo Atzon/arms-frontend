@@ -19,6 +19,21 @@ export const TOGGLE_MANGO = 'TOGGLE_MANGO';
 export const TOGGLE_AIRLY = 'TOGGLE_AIRLY';
 export const THEME_CHANGE = 'THEME_CHANGE';
 export const CHANGE_HOUR = 'CHANGE_HOUR';
+export const TEST_ACTION = 'TEST_ACTION';
+
+
+export function getTest(){
+
+    return (dispatch, getState) => {
+        const {points} = getState();
+
+        const result = points.data.filter(point =>
+            new Date(point.datetime).getHours()  > 0
+        );
+
+        dispatch({type: TEST_ACTION, payload: result});
+    }
+}
 
 export function fetchPoints(){
 
