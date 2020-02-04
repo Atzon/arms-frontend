@@ -1,11 +1,9 @@
 import axios from 'axios';
-import POINTS_1 from './5lines2.json';
-import POINTS_5 from './5lines2.json';
+import POINTS_1 from '../test_data/5lines2.json';
+import POINTS_5 from '../test_data/5lines2.json';
 import {AIRLY, EMPTY_POINT, MANGO, mapToHour} from "../utils/utils";
 
-const ROOT_URL = 'https://arms-backend-server.herokuapp.com/api';
-//const ROOT_URL = 'http://localhost:3000/api';
-
+const ROOT_URL = 'http://localhost:3000/api';
 
 export const FETCH_POINTS = 'FETCH_POINTS';
 export const FETCH_POINTS_OLD = 'FETCH_POINTS_OLD';
@@ -24,7 +22,6 @@ export function fetchPoints(){
 
     return (dispatch, getState) => {
         const { mango, airly, points } = getState();
-
         const mangoRes = mango.enabled ? mango.data : [];
         const airlyRes = airly.enabled ? airly.data : [];
 
@@ -39,18 +36,6 @@ export function fetchPoints(){
         dispatch({
             type: FETCH_POINTS,
             payload: result
-        });
-    };
-
-}
-
-export function fetchPoints_old(){
-
-    const request = axios.get(`${ROOT_URL}/points`);
-
-    return(dispatch) => {
-        request.then(({data}) =>{
-            dispatch({type: FETCH_POINTS_OLD, payload: data});
         });
     };
 }

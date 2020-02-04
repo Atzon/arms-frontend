@@ -58,3 +58,12 @@ export const EMPTY_POINT =     {
         "longitude": 0
     }
 };
+
+export const colorRange = [
+    [107,201,38],
+    [107,201,38],
+    [209,207,30],
+    [239,187,15],
+    [239,113,32],
+    [157,0,  40]
+];

@@ -3,8 +3,7 @@ import {Icon, Modal} from "antd";
 
 import '../styles/legend.css';
 
-
-function info() {
+const info = () => {
     Modal.info({
         title: 'Normy dla pyłów drobnych',
         content: (
@@ -28,9 +27,7 @@ function info() {
 
 
 export default class Legend extends PureComponent {
-
     render() {
-
         return (
             <div>
                 <div className="map-legend__colors">

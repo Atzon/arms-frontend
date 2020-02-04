@@ -4,11 +4,9 @@ export default function(state = {data: [], loaded: false, enabled: false}, actio
     switch(action.type){
         case FETCH_AIRLY:
             if(!state.loaded){
-                console.log('fetching airly not loaded ', {...state, data: action.payload, loaded: true, enabled: true});
                 return {...state, data: action.payload, loaded: true};
             }
             else{
-                console.log('fetching airly loaded ', state);
                 return state;
             }
         case TOGGLE_AIRLY:

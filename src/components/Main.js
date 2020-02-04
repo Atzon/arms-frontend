@@ -1,45 +1,23 @@
 import React, {Component} from 'react';
-import MapGL, {Popup, NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
+import MapGL, {NavigationControl, FullscreenControl, GeolocateControl} from 'react-map-gl';
 import {connect} from "react-redux";
+import {mapToHour, colorRange, TOKEN, AIRLY, MANGO, EMPTY_POINT, LIGHT_THEME} from "../utils/utils";
 import ControlPanel from './ControlPanel';
-import LocationInfo from './LocationInfo';
-import { GeoJsonLayer } from "deck.gl";
+import Settings from './Settings';
+import {DeckGL, GeoJsonLayer, ScreenGridLayer} from "deck.gl";
 import {Slider, Spin} from "antd";
-import {fetchPoints_old} from "../actions";
-import {generatePoints} from "../utils/utils";
+import {initialise, changeHour} from "../actions";
 import Geocoder from 'react-map-gl-geocoder'
 import Legend from "./Legend";
 import 'antd/lib/menu/style/css';
+import "antd/dist/antd.css";
 import '../styles/map.css';
 import '../styles/geocoder.css';
-
-
-import Lines from './LinesDb.json';
-
-
-const TOKEN = "pk.eyJ1IjoiYXR6b24iLCJhIjoiY2p1eTZ5amo0MGUwcTRkbnJvNjdqZHRzdCJ9.Yx1QgOpBGpbL6ZlTq_TaOg";
-const HEATMAP_SOURCE_ID = "points-source";
-const LINES_SOURCE_ID = 'lines-source';
-
-
-function mapToHour(value){
-    let hour = new Date().getHours() - (23-value);
-
-    if(hour>23){
-        hour = hour-24;
-    }
-    if(hour<0){
-        hour = 24 + hour;
-    }
-    return hour;
-}
-
-
 
 class Main extends Component{
 
     componentWillMount() {
-        this.props.fetchPoints_old();
+        this.props.initialise([MANGO, AIRLY], LIGHT_THEME);
     }
 
     constructor(props) {
@@ -53,18 +31,20 @@ class Main extends Component{
                 zoom: 10,
                 minZoom: 10
             },
-            popupInfo: null,
+            popupPm10: null,
             panelVisible: false,
             searchResultLayer: null,
-            points: null,
-            visiblePoints: [],
-            visibleHour: new Date().getHours(),
+            airly: [],
+            mangoOH: [],
+            visiblePoints: []
         };
         this.handleViewportChange = this.handleViewportChange.bind(this);
         this.onCloseControlPanel = this.onCloseControlPanel.bind(this);
-        this._mapRef = React.createRef();
-        this._handleMapLoaded = this._handleMapLoaded.bind(this);
+        this.mapRef = React.createRef();
+        this.handleMapLoaded = this.handleMapLoaded.bind(this);
         this.filterByDate = this.filterByDate.bind(this);
+        this.renderLayers = this.renderLayers.bind(this);
+        this.handleThemeChange = this.handleThemeChange.bind(this);
     }
 
     componentDidMount() {
@@ -95,21 +75,6 @@ class Main extends Component{
         })
     }
 
-    _renderPopup() {
-        const {popupInfo} = this.state;
-
-        return popupInfo && (
-            <Popup tipSize={5}
-                   anchor="top"
-                   longitude={popupInfo.geometry.coordinates[0]}
-                   latitude={popupInfo.geometry.coordinates[1]}
-                   closeOnClick={false}
-                   onClose={() => this.setState({popupInfo: null, panelVisible: false})} >
-                <LocationInfo info={popupInfo} />
-            </Popup>
-        );
-    }
-
     handleGeocoderViewportChange = viewport => {
         const geocoderDefaultOverrides = { transitionDuration: 1000 };
 
@@ -132,102 +97,6 @@ class Main extends Component{
         });
     };
 
-    _mkPinmapLayer = (id, source) =>{
-        return{
-            "id": id,
-            "source": source,
-            "type": "circle",
-            "paint": {
-                "circle-radius": {
-                    stops: [
-                        [0, 2],
-                        [20, 300]
-                    ],
-                    base: 2
-                },
-                "circle-color": [
-                    "interpolate",
-                    ["linear"],
-                    ["get", "pm10"],
-                    1, "rgba(107,201,38,0)",
-                    21, "rgb(107,201,38)",
-                    61, "rgb(209,207,30)",
-                    101, "rgb(239,187,15)",
-                    141, "rgb(239,113,32)",
-                    201, "rgb(157,0,40)"
-                ],
-                "circle-opacity": 0.8
-            }
-        }
-    };
-
-    _mkLinesLayer = (id, source) => {
-        return {
-            type: 'line',
-            source: source,
-            id: id,
-            paint: {
-                'line-color': 'red',
-                'line-width': 5,
-                // 'line-gradient' must be specified using an expression
-                // with the special 'line-progress' property
-                'line-gradient': [
-                    'interpolate',
-                    ['linear'],
-                    ['line-progress'],
-                    0, "green",
-                    0.1, "green",
-                    0.3, "yellow",
-                    0.5, "yellow",
-                    0.7, "red",
-                    1, "red"
-                ]
-            },
-            layout: {
-                'line-cap': 'round',
-                'line-join': 'round'
-            }
-        };
-    };
-
-
-    _mkCirclemapLayer = (id, source) => {
-        return{
-            "id": id,
-            "source": source,
-            "type": "circle",
-            // "minzoom": 7,
-            // "maxzoom": 16,
-            "paint": {
-
-                "circle-radius": {
-                    stops: [
-                        [0, 0],
-                        [20, 8000]
-                    ],
-                    base: 2
-                },
-
-                "circle-blur": 1,
-                "circle-color": [
-                    "interpolate",
-                    ["linear"],
-                    ["get", "pm10"],
-                    1, "rgba(107,201,38,0)",
-                    21, "rgb(107,201,38)",
-                    61, "rgb(209,207,30)",
-                    101, "rgb(239,187,15)",
-                    141, "rgb(239,113,32)",
-                    201, "rgb(157,0,40)"
-                ],
-                "circle-opacity": 0.5
-            }
-        }
-    };
-
-    _getMap = () => {
-        return this._mapRef.current ? this._mapRef.current.getMap() : null;
-    };
 
     filterByCracow = (item) =>{
         return item.context.map(function (i) {
@@ -238,48 +107,49 @@ class Main extends Component{
     };
 
     filterByDate(hour){
-        const map = this._getMap();
-
-        const filter =
-            [  "all",
-                ["==", "time", hour],
-                // ["<", "time", hour]
-            ];
-
-        map.setFilter('heatmap-layer', filter);
-        map.setFilter('pin-layer', filter);
-
-
-        const features = map.querySourceFeatures(HEATMAP_SOURCE_ID, {
-            sourceLayer: "heatmap-layer",
-            filter: filter
-        });
-
-        this.setState({
-            visiblePoints: features,
-            visibleHour: hour
-        });
-
+        this.props.changeHour(mapToHour(hour));
     }
 
-    _handleMapLoaded = event => {
-        const map = this._getMap();
-
-        const CONTENT = generatePoints(this.props.points);
-        const features = CONTENT.features;
-
-        this.setState({ points: CONTENT /*,endTime, startTime, selectedTime: endTime */});
-        map.addSource(HEATMAP_SOURCE_ID, { type: "geojson", data: CONTENT});
-        map.addSource(LINES_SOURCE_ID, { type: 'geojson', lineMetrics: true, data: Lines});
-        map.addLayer(this._mkCirclemapLayer("heatmap-layer", HEATMAP_SOURCE_ID));
-        map.addLayer(this._mkPinmapLayer("pin-layer", HEATMAP_SOURCE_ID));
 
 
-        // map.addLayer(this._mkLinesLayer("lines-layer", LINES_SOURCE_ID));
+    renderLayers() {
+        const {data = this.props.points.data, cellSize = 50, gpuAggregation = false, aggregation = 'Mean'} = this.props;
 
-        this.filterByDate(new Date().getHours());
+        return [
+            new ScreenGridLayer({
+                id: 'grid',
+                data,
+                opacity: 0.2,
+                pickable: true,
+                getPosition: d => [d.location.longitude, d.location.latitude],
+                getWeight: d => {
+                    if(d.PM10>300)
+                        return 300;
+                    else
+                        return d.PM10;
+                },
+                onClick: (info, _) => {
+                  this.setState({popupPm10: info.object.cellWeight, panelVisible: true});
+                },
+                cellSizePixels: cellSize,
+                colorDomain: [0, 300],
+                highlightColor: [102, 102, 255],
+                autoHighlight: true,
+                colorRange,
+                gpuAggregation,
+                aggregation
+            })
+        ];
+    }
+
+    handleMapLoaded = event => {
+        this.filterByDate(23);
     };
 
+
+    handleThemeChange(value){
+        this.setState({theme: value});
+    }
 
     formatter(value){
         return mapToHour(value).toString()+":00";
@@ -299,46 +169,29 @@ class Main extends Component{
 
         return(
             <div>
+                <Settings sources={this.props.settings.sources} theme={this.props.settings.theme}/>
+
                 <MapGL
-                    ref={this._mapRef}
+                    ref={this.mapRef}
                     {...viewport}
-                    // mapStyle="mapbox://styles/mapbox/dark-v9"
+                    mapStyle={this.props.settings.theme}
                     onViewportChange={this.handleViewportChange}
-                    onLoad={this._handleMapLoaded}
+                    onLoad={this.handleMapLoaded}
                     mapboxApiAccessToken={TOKEN}
-                    onClick={(e)=>{
-
-                        const map = this._getMap();
-
-                        const filter =
-                            [  "all",
-                                ["==", "time", this.state.visibleHour],
-                            ];
-
-                        let visiblePoints = map.querySourceFeatures(HEATMAP_SOURCE_ID, {
-                            sourceLayer: "heatmap-layer",
-                            filter: filter
-                        });
-
-                        visiblePoints.forEach(point =>{
-                            if(Math.abs(point.geometry.coordinates[0] - e.lngLat[0]) <= 0.00016 &&
-                                Math.abs(point.geometry.coordinates[1] - e.lngLat[1]) <= 0.00016){
-                                this.setState({popupInfo: point, panelVisible: true});
-                            }
-                        });
-                    }
-                    }
                 >
-
-                    {this._renderPopup()}
+                    <DeckGL
+                        viewState={viewport}
+                        layers={this.renderLayers()}
+                    />
 
                     <Geocoder
-                        mapRef={this._mapRef}
+                        mapRef={this.mapRef}
                         countries='pl'
                         onResult={this.handleOnResult}
                         onViewportChange={this.handleGeocoderViewportChange}
                         mapboxApiAccessToken={TOKEN}
                         position="top-left"
+                        width="200px"
                         filter={this.filterByCracow}
                     />
 
@@ -356,7 +209,7 @@ class Main extends Component{
                         <NavigationControl onViewportChange={this.handleViewportChange} />
                     </div>
                     {this.state.panelVisible ?
-                        <ControlPanel popupInfo={this.state.popupInfo} onClose={this.onCloseControlPanel} />
+                        <ControlPanel popupInfo={this.state.popupPm10} onClose={this.onCloseControlPanel} />
                         :
                         <div></div>
                     }
@@ -373,8 +226,9 @@ class Main extends Component{
 
 function mapStateToProps(state){
     return{
-        points: state.pointsOld
+        points: state.points,
+        settings: state.settings
     };
 }
 
-export default connect(mapStateToProps, {fetchPoints_old})(Main);
+export default connect(mapStateToProps, {initialise, changeHour})(Main);
